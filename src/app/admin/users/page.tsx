@@ -24,22 +24,20 @@ const ROLES = [
 ];
 
 const ROLE_COLORS: Record<string, string> = {
-  admin: 'bg-red-50 text-red-700',
-  chairman: 'bg-purple-50 text-purple-700',
-  co_chairman: 'bg-indigo-50 text-indigo-700',
-  ug_coordinator: 'bg-blue-50 text-blue-700',
-  class_advisor: 'bg-cyan-50 text-cyan-700',
-  teacher: 'bg-green-50 text-green-700',
-  student: 'bg-gray-100 text-gray-700',
+  admin: 'bg-red-100 text-red-800',
+  chairman: 'bg-purple-100 text-purple-800',
+  co_chairman: 'bg-indigo-100 text-indigo-800',
+  ug_coordinator: 'bg-blue-100 text-blue-800',
+  class_advisor: 'bg-cyan-100 text-cyan-800',
+  teacher: 'bg-emerald-100 text-emerald-800',
+  student: 'bg-slate-100 text-slate-700',
 };
 
-const initialFormState = {
-  name: '',
-  email: '',
-  password: '',
-  role: 'teacher' as string,
-  advisorYear: '' as string | number,
-};
+// Shared input class for consistent styling
+const INPUT = 'w-full px-3 py-2 border border-slate-300 rounded-md text-sm text-slate-900 bg-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500';
+const SELECT = INPUT + ' appearance-none';
+
+const initialForm = { name: '', email: '', password: '', role: 'teacher' as string, advisorYear: '' as string | number };
 
 export default function UsersPage() {
   const [users, setUsers] = useState<User[]>([]);
@@ -50,7 +48,7 @@ export default function UsersPage() {
   const [search, setSearch] = useState('');
   const [showModal, setShowModal] = useState(false);
   const [editingUser, setEditingUser] = useState<User | null>(null);
-  const [form, setForm] = useState(initialFormState);
+  const [form, setForm] = useState(initialForm);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState('');
 
@@ -63,8 +61,8 @@ export default function UsersPage() {
       const res = await fetch(`/api/users?${params}`);
       const data = await res.json();
       if (data.success) {
-        setUsers(data.data);
-        setTotalPages(data.pagination?.pages || 1);
+        setUsers(data.users);
+        setTotalPages(data.pagination?.totalPages || 1);
       }
     } catch (err) {
       console.error('Fetch users error:', err);
@@ -73,73 +71,33 @@ export default function UsersPage() {
     }
   }, [page, roleFilter, search]);
 
-  useEffect(() => {
-    fetchUsers();
-  }, [fetchUsers]);
+  useEffect(() => { fetchUsers(); }, [fetchUsers]);
 
-  const openCreate = () => {
-    setEditingUser(null);
-    setForm(initialFormState);
-    setError('');
-    setShowModal(true);
-  };
-
-  const openEdit = (user: User) => {
-    setEditingUser(user);
-    setForm({
-      name: user.name,
-      email: user.email,
-      password: '',
-      role: user.role,
-      advisorYear: user.advisorYear || '',
-    });
-    setError('');
-    setShowModal(true);
-  };
+  const openCreate = () => { setEditingUser(null); setForm(initialForm); setError(''); setShowModal(true); };
+  const openEdit = (u: User) => { setEditingUser(u); setForm({ name: u.name, email: u.email, password: '', role: u.role, advisorYear: u.advisorYear || '' }); setError(''); setShowModal(true); };
 
   const handleSave = async () => {
-    setSaving(true);
-    setError('');
+    setSaving(true); setError('');
     try {
       const url = editingUser ? `/api/users/${editingUser._id}` : '/api/users';
       const method = editingUser ? 'PUT' : 'POST';
-      const body: Record<string, unknown> = {
-        name: form.name,
-        email: form.email,
-        role: form.role,
-      };
+      const body: Record<string, unknown> = { name: form.name, email: form.email, role: form.role };
       if (form.password) body.password = form.password;
-      if (form.role === 'class_advisor' && form.advisorYear) {
-        body.advisorYear = Number(form.advisorYear);
-      }
-
-      const res = await fetch(url, {
-        method,
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(body),
-      });
+      if (form.role === 'class_advisor' && form.advisorYear) body.advisorYear = Number(form.advisorYear);
+      const res = await fetch(url, { method, headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || 'Failed to save user');
-      setShowModal(false);
-      fetchUsers();
+      setShowModal(false); fetchUsers();
     } catch (err: unknown) {
       setError(err instanceof Error ? err.message : 'Failed to save');
-    } finally {
-      setSaving(false);
-    }
+    } finally { setSaving(false); }
   };
 
-  const handleToggleActive = async (user: User) => {
+  const handleToggleActive = async (u: User) => {
     try {
-      await fetch(`/api/users/${user._id}`, {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ isActive: !user.isActive }),
-      });
+      await fetch(`/api/users/${u._id}`, { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ isActive: !u.isActive }) });
       fetchUsers();
-    } catch (err) {
-      console.error('Toggle error:', err);
-    }
+    } catch (err) { console.error('Toggle error:', err); }
   };
 
   return (
@@ -149,153 +107,91 @@ export default function UsersPage() {
         <div className="flex gap-2 flex-wrap">
           <input
             type="text"
-            placeholder="Search by name or email..."
+            placeholder="Search users..."
             value={search}
-            onChange={(e) => {
-              setSearch(e.target.value);
-              setPage(1);
-            }}
-            className="px-3 py-2 border border-gray-200 rounded-lg text-sm w-64 focus:outline-none focus:ring-2 focus:ring-blue-500"
+            onChange={e => { setSearch(e.target.value); setPage(1); }}
+            className="px-3 py-2 border border-slate-300 rounded-md text-sm text-slate-900 bg-white placeholder-slate-400 w-56 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
           />
           <select
             value={roleFilter}
-            onChange={(e) => {
-              setRoleFilter(e.target.value);
-              setPage(1);
-            }}
-            className="px-3 py-2 border border-gray-200 rounded-lg text-sm bg-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+            onChange={e => { setRoleFilter(e.target.value); setPage(1); }}
+            className="px-3 py-2 border border-slate-300 rounded-md text-sm text-slate-900 bg-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
           >
             <option value="">All Roles</option>
-            {ROLES.map((r) => (
-              <option key={r.value} value={r.value}>
-                {r.label}
-              </option>
-            ))}
+            {ROLES.map(r => <option key={r.value} value={r.value}>{r.label}</option>)}
           </select>
         </div>
-        <button
-          onClick={openCreate}
-          className="px-4 py-2 bg-blue-600 text-white text-sm font-medium rounded-lg hover:bg-blue-700 transition-colors flex items-center gap-1.5"
-        >
-          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
-          </svg>
+        <button onClick={openCreate} className="px-4 py-2 bg-blue-600 text-white text-sm font-medium rounded-md hover:bg-blue-700 transition flex items-center gap-1.5">
+          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" /></svg>
           Add User
         </button>
       </div>
 
       {/* Table */}
-      <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">
+      <div className="bg-white rounded-lg border border-slate-200 overflow-hidden">
         <div className="overflow-x-auto">
           <table className="w-full text-sm">
             <thead>
-              <tr className="border-b border-gray-100 bg-gray-50/50">
-                <th className="text-left px-4 py-3 font-medium text-gray-600">Name</th>
-                <th className="text-left px-4 py-3 font-medium text-gray-600">Email</th>
-                <th className="text-left px-4 py-3 font-medium text-gray-600">Role</th>
-                <th className="text-left px-4 py-3 font-medium text-gray-600">Status</th>
-                <th className="text-right px-4 py-3 font-medium text-gray-600">Actions</th>
+              <tr className="bg-slate-50 border-b border-slate-200">
+                <th className="text-left px-4 py-2.5 font-semibold text-slate-700 text-xs uppercase tracking-wider">Name</th>
+                <th className="text-left px-4 py-2.5 font-semibold text-slate-700 text-xs uppercase tracking-wider">Email</th>
+                <th className="text-left px-4 py-2.5 font-semibold text-slate-700 text-xs uppercase tracking-wider">Role</th>
+                <th className="text-left px-4 py-2.5 font-semibold text-slate-700 text-xs uppercase tracking-wider">Status</th>
+                <th className="text-right px-4 py-2.5 font-semibold text-slate-700 text-xs uppercase tracking-wider">Actions</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-gray-50">
+            <tbody className="divide-y divide-slate-100">
               {loading ? (
-                <tr>
-                  <td colSpan={5} className="px-4 py-12 text-center text-gray-500">
-                    Loading...
-                  </td>
-                </tr>
+                <tr><td colSpan={5} className="px-4 py-10 text-center text-slate-500 text-sm">Loading...</td></tr>
               ) : users.length === 0 ? (
-                <tr>
-                  <td colSpan={5} className="px-4 py-12 text-center text-gray-500">
-                    No users found. Click &quot;Add User&quot; to create one.
+                <tr><td colSpan={5} className="px-4 py-10 text-center text-slate-500 text-sm">No users found.</td></tr>
+              ) : users.map(u => (
+                <tr key={u._id} className="hover:bg-slate-50 transition">
+                  <td className="px-4 py-2.5">
+                    <div className="flex items-center gap-2.5">
+                      <div className="w-7 h-7 bg-slate-200 rounded-full flex items-center justify-center text-[11px] font-bold text-slate-600">{u.name?.charAt(0).toUpperCase() || '?'}</div>
+                      <span className="font-medium text-slate-900">{u.name}</span>
+                    </div>
+                  </td>
+                  <td className="px-4 py-2.5 text-slate-600">{u.email}</td>
+                  <td className="px-4 py-2.5">
+                    <span className={`inline-flex px-2 py-0.5 rounded text-[11px] font-semibold ${ROLE_COLORS[u.role] || 'bg-slate-100 text-slate-600'}`}>
+                      {ROLES.find(r => r.value === u.role)?.label || u.role}
+                      {u.role === 'class_advisor' && u.advisorYear ? ` (Y${u.advisorYear})` : ''}
+                    </span>
+                  </td>
+                  <td className="px-4 py-2.5">
+                    <span className={`inline-flex items-center gap-1.5 text-xs font-medium ${u.isActive ? 'text-emerald-700' : 'text-slate-400'}`}>
+                      <span className={`w-1.5 h-1.5 rounded-full ${u.isActive ? 'bg-emerald-500' : 'bg-slate-300'}`} />
+                      {u.isActive ? 'Active' : 'Inactive'}
+                    </span>
+                  </td>
+                  <td className="px-4 py-2.5 text-right">
+                    <div className="flex items-center justify-end gap-1">
+                      <button onClick={() => openEdit(u)} className="p-1.5 text-slate-400 hover:text-blue-600 rounded transition" title="Edit">
+                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" /></svg>
+                      </button>
+                      <button onClick={() => handleToggleActive(u)} className={`p-1.5 rounded transition ${u.isActive ? 'text-slate-400 hover:text-red-600' : 'text-slate-400 hover:text-emerald-600'}`} title={u.isActive ? 'Deactivate' : 'Activate'}>
+                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          {u.isActive
+                            ? <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M18.364 18.364A9 9 0 005.636 5.636m12.728 12.728A9 9 0 015.636 5.636m12.728 12.728L5.636 5.636" />
+                            : <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />}
+                        </svg>
+                      </button>
+                    </div>
                   </td>
                 </tr>
-              ) : (
-                users.map((user) => (
-                  <tr key={user._id} className="hover:bg-gray-50/50 transition-colors">
-                    <td className="px-4 py-3">
-                      <div className="flex items-center gap-2">
-                        <div className="w-7 h-7 bg-gray-100 rounded-full flex items-center justify-center text-xs font-medium text-gray-600">
-                          {user.name?.charAt(0).toUpperCase() || '?'}
-                        </div>
-                        <span className="font-medium text-gray-900">{user.name}</span>
-                      </div>
-                    </td>
-                    <td className="px-4 py-3 text-gray-600">{user.email}</td>
-                    <td className="px-4 py-3">
-                      <span
-                        className={`inline-flex px-2 py-0.5 rounded-full text-xs font-medium ${ROLE_COLORS[user.role] || 'bg-gray-100 text-gray-600'}`}
-                      >
-                        {ROLES.find((r) => r.value === user.role)?.label || user.role}
-                        {user.role === 'class_advisor' && user.advisorYear
-                          ? ` (Year ${user.advisorYear})`
-                          : ''}
-                      </span>
-                    </td>
-                    <td className="px-4 py-3">
-                      <span
-                        className={`inline-flex items-center gap-1 text-xs font-medium ${user.isActive ? 'text-green-600' : 'text-gray-400'}`}
-                      >
-                        <span
-                          className={`w-1.5 h-1.5 rounded-full ${user.isActive ? 'bg-green-500' : 'bg-gray-300'}`}
-                        />
-                        {user.isActive ? 'Active' : 'Inactive'}
-                      </span>
-                    </td>
-                    <td className="px-4 py-3 text-right">
-                      <div className="flex items-center justify-end gap-1">
-                        <button
-                          onClick={() => openEdit(user)}
-                          className="p-1.5 text-gray-400 hover:text-blue-600 rounded transition-colors"
-                          title="Edit"
-                        >
-                          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
-                          </svg>
-                        </button>
-                        <button
-                          onClick={() => handleToggleActive(user)}
-                          className={`p-1.5 rounded transition-colors ${user.isActive ? 'text-gray-400 hover:text-red-600' : 'text-gray-400 hover:text-green-600'}`}
-                          title={user.isActive ? 'Deactivate' : 'Activate'}
-                        >
-                          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            {user.isActive ? (
-                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M18.364 18.364A9 9 0 005.636 5.636m12.728 12.728A9 9 0 015.636 5.636m12.728 12.728L5.636 5.636" />
-                            ) : (
-                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-                            )}
-                          </svg>
-                        </button>
-                      </div>
-                    </td>
-                  </tr>
-                ))
-              )}
+              ))}
             </tbody>
           </table>
         </div>
 
-        {/* Pagination */}
         {totalPages > 1 && (
-          <div className="border-t border-gray-100 px-4 py-3 flex items-center justify-between">
-            <p className="text-sm text-gray-500">
-              Page {page} of {totalPages}
-            </p>
+          <div className="border-t border-slate-200 px-4 py-2.5 flex items-center justify-between bg-slate-50">
+            <p className="text-xs text-slate-600 font-medium">Page {page} of {totalPages}</p>
             <div className="flex gap-1">
-              <button
-                onClick={() => setPage((p) => Math.max(1, p - 1))}
-                disabled={page === 1}
-                className="px-3 py-1.5 text-sm border border-gray-200 rounded-lg disabled:opacity-50 hover:bg-gray-50"
-              >
-                Previous
-              </button>
-              <button
-                onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
-                disabled={page === totalPages}
-                className="px-3 py-1.5 text-sm border border-gray-200 rounded-lg disabled:opacity-50 hover:bg-gray-50"
-              >
-                Next
-              </button>
+              <button onClick={() => setPage(p => Math.max(1, p - 1))} disabled={page === 1} className="px-3 py-1.5 text-xs font-medium border border-slate-300 rounded-md disabled:opacity-40 hover:bg-white transition text-slate-700">Prev</button>
+              <button onClick={() => setPage(p => Math.min(totalPages, p + 1))} disabled={page === totalPages} className="px-3 py-1.5 text-xs font-medium border border-slate-300 rounded-md disabled:opacity-40 hover:bg-white transition text-slate-700">Next</button>
             </div>
           </div>
         )}
@@ -303,103 +199,57 @@ export default function UsersPage() {
 
       {/* Modal */}
       {showModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/30">
-          <div className="bg-white rounded-xl shadow-xl w-full max-w-md mx-4 p-6">
-            <h3 className="text-lg font-semibold text-gray-900 mb-4">
-              {editingUser ? 'Edit User' : 'Create User'}
-            </h3>
-
-            {error && (
-              <div className="mb-4 p-3 bg-red-50 border border-red-100 rounded-lg text-sm text-red-700">
-                {error}
-              </div>
-            )}
-
-            <div className="space-y-4">
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Name</label>
-                <input
-                  type="text"
-                  value={form.name}
-                  onChange={(e) => setForm({ ...form, name: e.target.value })}
-                  className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  placeholder="Full name"
-                />
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Email</label>
-                <input
-                  type="email"
-                  value={form.email}
-                  onChange={(e) => setForm({ ...form, email: e.target.value })}
-                  className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  placeholder="user@example.com"
-                />
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Password{editingUser ? ' (leave empty to keep current)' : ''}
-                </label>
-                <input
-                  type="password"
-                  value={form.password}
-                  onChange={(e) => setForm({ ...form, password: e.target.value })}
-                  className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  placeholder={editingUser ? '••••••••' : 'Min 8 characters'}
-                />
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Role</label>
-                <select
-                  value={form.role}
-                  onChange={(e) => setForm({ ...form, role: e.target.value })}
-                  className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm bg-white focus:outline-none focus:ring-2 focus:ring-blue-500"
-                >
-                  {ROLES.map((r) => (
-                    <option key={r.value} value={r.value}>
-                      {r.label}
-                    </option>
-                  ))}
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm">
+          <div className="bg-white rounded-lg shadow-2xl w-full max-w-md mx-4 border border-slate-200">
+            <div className="px-5 py-4 border-b border-slate-200">
+              <h3 className="text-base font-semibold text-slate-900">{editingUser ? 'Edit User' : 'Create User'}</h3>
+            </div>
+            <div className="px-5 py-4 space-y-4">
+              {error && <div className="p-2.5 bg-red-50 border border-red-200 rounded-md text-sm text-red-700">{error}</div>}
+              <Field label="Name">
+                <input type="text" value={form.name} onChange={e => setForm({ ...form, name: e.target.value })} className={INPUT} placeholder="Full name" />
+              </Field>
+              <Field label="Email">
+                <input type="email" value={form.email} onChange={e => setForm({ ...form, email: e.target.value })} className={INPUT} placeholder="user@example.com" />
+              </Field>
+              <Field label={editingUser ? 'Password (leave blank to keep)' : 'Password'}>
+                <input type="password" value={form.password} onChange={e => setForm({ ...form, password: e.target.value })} className={INPUT} placeholder={editingUser ? '••••••••' : 'Min 8 characters'} />
+              </Field>
+              <Field label="Role">
+                <select value={form.role} onChange={e => setForm({ ...form, role: e.target.value })} className={SELECT}>
+                  {ROLES.map(r => <option key={r.value} value={r.value}>{r.label}</option>)}
                 </select>
-              </div>
+              </Field>
               {form.role === 'class_advisor' && (
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Advisor Year
-                  </label>
-                  <select
-                    value={form.advisorYear}
-                    onChange={(e) => setForm({ ...form, advisorYear: e.target.value })}
-                    className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm bg-white focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  >
+                <Field label="Advisor Year">
+                  <select value={form.advisorYear} onChange={e => setForm({ ...form, advisorYear: e.target.value })} className={SELECT}>
                     <option value="">Select year</option>
                     <option value="1">Year 1</option>
                     <option value="2">Year 2</option>
                     <option value="3">Year 3</option>
                     <option value="4">Year 4</option>
                   </select>
-                </div>
+                </Field>
               )}
             </div>
-
-            <div className="flex justify-end gap-2 mt-6">
-              <button
-                onClick={() => setShowModal(false)}
-                className="px-4 py-2 text-sm text-gray-600 hover:text-gray-800 transition-colors"
-              >
-                Cancel
-              </button>
-              <button
-                onClick={handleSave}
-                disabled={saving || !form.name || !form.email || (!editingUser && !form.password)}
-                className="px-4 py-2 bg-blue-600 text-white text-sm font-medium rounded-lg hover:bg-blue-700 disabled:opacity-50 transition-colors"
-              >
+            <div className="px-5 py-3 border-t border-slate-200 flex justify-end gap-2 bg-slate-50 rounded-b-lg">
+              <button onClick={() => setShowModal(false)} className="px-4 py-2 text-sm font-medium text-slate-600 hover:text-slate-800 transition">Cancel</button>
+              <button onClick={handleSave} disabled={saving || !form.name || !form.email || (!editingUser && !form.password)} className="px-4 py-2 bg-blue-600 text-white text-sm font-medium rounded-md hover:bg-blue-700 disabled:opacity-40 transition">
                 {saving ? 'Saving...' : editingUser ? 'Update' : 'Create'}
               </button>
             </div>
           </div>
         </div>
       )}
+    </div>
+  );
+}
+
+function Field({ label, children }: { label: string; children: React.ReactNode }) {
+  return (
+    <div>
+      <label className="block text-xs font-semibold text-slate-700 mb-1.5">{label}</label>
+      {children}
     </div>
   );
 }

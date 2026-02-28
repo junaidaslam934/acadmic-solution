@@ -1,6 +1,8 @@
 import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
-import { verifyToken } from '@/lib/auth';
+// NOTE: jsonwebtoken doesn't work in Edge runtime (middleware).
+// Token verification is done in API routes/server components instead.
+// Middleware only checks for cookie/token existence as a gate.
 
 // Routes that don't require authentication
 const PUBLIC_ROUTES = [
@@ -11,17 +13,6 @@ const PUBLIC_ROUTES = [
   '/api/forgot-password',
   '/api/reset-password',
 ];
-
-// Map roles to allowed route prefixes
-const ROLE_ACCESS: Record<string, string[]> = {
-  admin: ['/admin'],
-  chairman: ['/admin'],
-  co_chairman: ['/admin', '/coordinator'],
-  ug_coordinator: ['/coordinator'],
-  class_advisor: ['/class-advisor', '/teacher'],
-  teacher: ['/teacher'],
-  student: ['/student'],
-};
 
 export function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
@@ -36,7 +27,7 @@ export function middleware(request: NextRequest) {
     return NextResponse.next();
   }
 
-  // Get auth token
+  // Get auth token from cookie or Authorization header
   const token = request.cookies.get('auth_token')?.value ||
     (request.headers.get('Authorization')?.startsWith('Bearer ') 
       ? request.headers.get('Authorization')!.slice(7) 
@@ -50,27 +41,10 @@ export function middleware(request: NextRequest) {
     pathname.startsWith('/class-advisor') ||
     pathname.startsWith('/coordinator');
 
-  if (isProtectedPage) {
-    if (!token) {
-      const loginUrl = new URL('/login', request.url);
-      loginUrl.searchParams.set('redirect', pathname);
-      return NextResponse.redirect(loginUrl);
-    }
-
-    // Verify token and check role access
-    const payload = verifyToken(token);
-    if (!payload) {
-      const loginUrl = new URL('/login', request.url);
-      return NextResponse.redirect(loginUrl);
-    }
-
-    const allowedPaths = ROLE_ACCESS[payload.role] || [];
-    const hasAccess = allowedPaths.some((prefix) => pathname.startsWith(prefix));
-    if (!hasAccess) {
-      // Redirect to their appropriate dashboard
-      const defaultPath = allowedPaths[0] || '/login';
-      return NextResponse.redirect(new URL(`${defaultPath}/dashboard`, request.url));
-    }
+  if (isProtectedPage && !token) {
+    const loginUrl = new URL('/login', request.url);
+    loginUrl.searchParams.set('redirect', pathname);
+    return NextResponse.redirect(loginUrl);
   }
 
   // For protected API routes, verify token exists

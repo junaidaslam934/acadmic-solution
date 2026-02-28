@@ -27,10 +27,10 @@ export async function POST(request: NextRequest) {
   try {
     await connectDB();
     const body = await request.json();
-    const { name, academicYear, type, startDate, endDate, sections, timeSlots, workingDays } = body;
+    const { academicYear, type, startDate, endDate, sections, timeSlots, workingDays, outlineDeadline, schedulingDeadline } = body;
 
-    if (!name || !academicYear || !type || !startDate || !endDate) {
-      return apiError('Name, academic year, type, start date, and end date are required', { status: 400 });
+    if (!academicYear || !type || !startDate || !endDate) {
+      return apiError('Academic year, type, start date, and end date are required', { status: 400 });
     }
 
     const start = new Date(startDate);
@@ -39,16 +39,21 @@ export async function POST(request: NextRequest) {
       return apiError('Start date must be before end date', { status: 400 });
     }
 
+    // Auto-generate name from type + academic year (e.g. "Fall 2025-2026")
+    const name = `${type.charAt(0).toUpperCase() + type.slice(1)} ${academicYear}`;
+
     const semester = await Semester.create({
       name,
       academicYear,
       type,
       startDate: start,
       endDate: end,
-      status: 'planning',
+      status: 'active',
       sections: sections || { 1: ['A', 'B'], 2: ['A', 'B'], 3: ['A', 'B'], 4: ['A', 'B'] },
       timeSlots: timeSlots || undefined,
       workingDays: workingDays || undefined,
+      outlineDeadline: outlineDeadline ? new Date(outlineDeadline) : undefined,
+      schedulingDeadline: schedulingDeadline ? new Date(schedulingDeadline) : undefined,
     });
 
     return apiSuccess({ semester }, { status: 201 });
@@ -66,9 +71,10 @@ export async function PUT(request: NextRequest) {
   try {
     await connectDB();
     const body = await request.json();
-    const { id, ...updates } = body;
+    const { _id, id, ...updates } = body;
+    const semesterId = _id || id;
 
-    if (!id) {
+    if (!semesterId) {
       return apiError('Semester ID is required', { status: 400 });
     }
 
@@ -77,7 +83,17 @@ export async function PUT(request: NextRequest) {
     if (updates.outlineDeadline) updates.outlineDeadline = new Date(updates.outlineDeadline);
     if (updates.schedulingDeadline) updates.schedulingDeadline = new Date(updates.schedulingDeadline);
 
-    const semester = await Semester.findByIdAndUpdate(id, updates, { new: true })
+    // Auto-regenerate name if type or academicYear changes
+    if (updates.type || updates.academicYear) {
+      const existing = await Semester.findById(semesterId);
+      if (existing) {
+        const newType = updates.type || existing.type;
+        const newYear = updates.academicYear || existing.academicYear;
+        updates.name = `${newType.charAt(0).toUpperCase() + newType.slice(1)} ${newYear}`;
+      }
+    }
+
+    const semester = await Semester.findByIdAndUpdate(semesterId, updates, { new: true })
       .populate('classAdvisors.userId', 'name email role')
       .populate('ugCoordinatorId', 'name email')
       .populate('coChairmanId', 'name email')

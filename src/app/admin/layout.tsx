@@ -4,169 +4,79 @@ import { ReactNode, useEffect, useState } from 'react';
 import { usePathname, useRouter } from 'next/navigation';
 import Link from 'next/link';
 
-const NAV_ITEMS = [
-  {
-    href: '/admin/dashboard',
-    label: 'Dashboard',
-    icon: 'M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-4 0h4',
-  },
-  {
-    href: '/admin/users',
-    label: 'Users',
-    icon: 'M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z',
-  },
-  {
-    href: '/admin/semesters',
-    label: 'Semesters',
-    icon: 'M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z',
-  },
-  {
-    href: '/admin/courses',
-    label: 'Courses',
-    icon: 'M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253',
-  },
-  {
-    href: '/admin/outlines',
-    label: 'Outlines',
-    icon: 'M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z',
-  },
-  {
-    href: '/admin/timetables',
-    label: 'Timetables',
-    icon: 'M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2',
-  },
+const NAV = [
+  { href: '/admin/dashboard', label: 'Dashboard', d: 'M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-4 0h4' },
+  { href: '/admin/users', label: 'Users', d: 'M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z' },
+  { href: '/admin/semesters', label: 'Semesters', d: 'M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z' },
+  { href: '/admin/courses', label: 'Courses', d: 'M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253' },
+  { href: '/admin/outlines', label: 'Outlines', d: 'M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z' },
+  { href: '/admin/timetables', label: 'Timetables', d: 'M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2' },
 ];
 
 export default function AdminLayout({ children }: { children: ReactNode }) {
   const pathname = usePathname();
   const router = useRouter();
-  const [sidebarOpen, setSidebarOpen] = useState(false);
-  const [userName, setUserName] = useState('Admin');
+  const [open, setOpen] = useState(false);
+  const [user, setUser] = useState('Admin');
 
   useEffect(() => {
-    const name =
-      localStorage.getItem('userName') || localStorage.getItem('adminName') || 'Admin';
-    setUserName(name);
+    setUser(localStorage.getItem('userName') || localStorage.getItem('adminName') || 'Admin');
   }, []);
 
-  const handleLogout = async () => {
-    try {
-      await fetch('/api/auth/logout', { method: 'POST' });
-    } catch {
-      // still clear state
-    }
+  const logout = async () => {
+    try { await fetch('/api/auth/logout', { method: 'POST' }); } catch {}
     localStorage.clear();
     router.push('/login');
   };
 
+  const isAuth = pathname.includes('/login') || pathname.includes('/forgot-password') || pathname.includes('/reset-password');
+  if (isAuth) return <>{children}</>;
+
   return (
-    <div className="min-h-screen bg-gray-50 flex">
+    <div className="min-h-screen bg-slate-100 flex">
       {/* Sidebar */}
-      <aside
-        className={`fixed inset-y-0 left-0 z-30 w-64 bg-white border-r border-gray-200 transform transition-transform duration-200 lg:translate-x-0 lg:static ${
-          sidebarOpen ? 'translate-x-0' : '-translate-x-full'
-        }`}
-      >
+      <aside className={`fixed inset-y-0 left-0 z-30 w-60 bg-slate-900 transform transition-transform duration-200 lg:translate-x-0 lg:static ${open ? 'translate-x-0' : '-translate-x-full'}`}>
         <div className="flex flex-col h-full">
-          {/* Logo */}
-          <div className="h-16 flex items-center px-6 border-b border-gray-100">
-            <Link href="/admin/dashboard" className="flex items-center gap-2">
-              <div className="w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center">
-                <span className="text-white text-sm font-bold">A</span>
+          <div className="h-14 flex items-center px-5 border-b border-slate-700/50">
+            <Link href="/admin/dashboard" className="flex items-center gap-2.5">
+              <div className="w-7 h-7 bg-blue-500 rounded-md flex items-center justify-center">
+                <span className="text-white text-xs font-bold">A</span>
               </div>
-              <span className="font-semibold text-gray-900">Academic Portal</span>
+              <span className="font-semibold text-white text-sm">Academic Portal</span>
             </Link>
           </div>
-
-          {/* Navigation */}
-          <nav className="flex-1 px-3 py-4 space-y-1 overflow-y-auto">
-            {NAV_ITEMS.map((item) => {
-              const isActive = pathname === item.href || pathname.startsWith(item.href + '/');
+          <nav className="flex-1 px-3 py-3 space-y-0.5 overflow-y-auto">
+            {NAV.map((item) => {
+              const active = pathname === item.href || pathname.startsWith(item.href + '/');
               return (
-                <Link
-                  key={item.href}
-                  href={item.href}
-                  onClick={() => setSidebarOpen(false)}
-                  className={`flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors ${
-                    isActive
-                      ? 'bg-blue-50 text-blue-700'
-                      : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'
-                  }`}
-                >
-                  <svg
-                    className="w-5 h-5 flex-shrink-0"
-                    fill="none"
-                    stroke="currentColor"
-                    viewBox="0 0 24 24"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth={1.5}
-                      d={item.icon}
-                    />
-                  </svg>
+                <Link key={item.href} href={item.href} onClick={() => setOpen(false)}
+                  className={`flex items-center gap-2.5 px-3 py-2 rounded-md text-[13px] font-medium transition-colors ${active ? 'bg-blue-600 text-white' : 'text-slate-400 hover:bg-slate-800 hover:text-white'}`}>
+                  <svg className="w-[18px] h-[18px] flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={1.5}><path strokeLinecap="round" strokeLinejoin="round" d={item.d} /></svg>
                   {item.label}
                 </Link>
               );
             })}
           </nav>
-
-          {/* User section */}
-          <div className="p-4 border-t border-gray-100">
-            <div className="flex items-center gap-3 mb-3">
-              <div className="w-8 h-8 bg-gray-200 rounded-full flex items-center justify-center">
-                <span className="text-sm font-medium text-gray-600">
-                  {userName.charAt(0).toUpperCase()}
-                </span>
-              </div>
-              <div className="min-w-0">
-                <p className="text-sm font-medium text-gray-900 truncate">{userName}</p>
-                <p className="text-xs text-gray-500">Administrator</p>
-              </div>
+          <div className="p-3 border-t border-slate-700/50">
+            <div className="flex items-center gap-2.5 px-2 mb-2">
+              <div className="w-7 h-7 bg-slate-700 rounded-full flex items-center justify-center text-[11px] font-bold text-slate-300">{user.charAt(0).toUpperCase()}</div>
+              <div className="min-w-0"><p className="text-xs font-medium text-slate-200 truncate">{user}</p><p className="text-[10px] text-slate-500">Administrator</p></div>
             </div>
-            <button
-              onClick={handleLogout}
-              className="w-full text-left px-3 py-2 text-sm text-gray-600 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors"
-            >
-              Sign out
-            </button>
+            <button onClick={logout} className="w-full text-left px-3 py-1.5 text-xs text-slate-500 hover:text-red-400 hover:bg-slate-800 rounded-md transition-colors">Sign out</button>
           </div>
         </div>
       </aside>
 
-      {/* Mobile overlay */}
-      {sidebarOpen && (
-        <div
-          className="fixed inset-0 bg-black/20 z-20 lg:hidden"
-          onClick={() => setSidebarOpen(false)}
-        />
-      )}
+      {open && <div className="fixed inset-0 bg-black/40 z-20 lg:hidden" onClick={() => setOpen(false)} />}
 
-      {/* Main content */}
       <div className="flex-1 flex flex-col min-w-0">
-        {/* Top bar */}
-        <header className="h-16 bg-white border-b border-gray-200 flex items-center px-4 lg:px-8 gap-4 sticky top-0 z-10">
-          <button
-            onClick={() => setSidebarOpen(!sidebarOpen)}
-            className="lg:hidden p-2 -ml-2 text-gray-500 hover:text-gray-700"
-          >
-            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2}
-                d="M4 6h16M4 12h16M4 18h16"
-              />
-            </svg>
+        <header className="h-14 bg-white border-b border-slate-200 flex items-center px-4 lg:px-6 gap-3 sticky top-0 z-10">
+          <button onClick={() => setOpen(!open)} className="lg:hidden p-1.5 -ml-1 text-slate-500 hover:text-slate-700">
+            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" /></svg>
           </button>
-          <h1 className="text-lg font-semibold text-gray-900">
-            {NAV_ITEMS.find((i) => pathname.startsWith(i.href))?.label || 'Admin'}
-          </h1>
+          <h1 className="text-sm font-semibold text-slate-800">{NAV.find((i) => pathname.startsWith(i.href))?.label || 'Admin'}</h1>
         </header>
-
-        {/* Page content */}
-        <main className="flex-1 p-4 lg:p-8 overflow-auto">{children}</main>
+        <main className="flex-1 p-4 lg:p-6 overflow-auto">{children}</main>
       </div>
     </div>
   );
