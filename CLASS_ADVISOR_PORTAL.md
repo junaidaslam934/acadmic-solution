@@ -1,53 +1,63 @@
 # Class Advisor Portal
 
 ## Overview
-A dedicated portal for class advisors to manage course assignments and teacher preferences, completely separate from the admin interface.
+A dedicated portal for class advisors to manage course assignments, teacher preferences, and course outline reviews. Features a dark slate sidebar with purple accent, consistent with the system-wide design.
 
 ## Access
 
-### Login URL
-`/class-advisor/login`
+### Login
+All users log in via the unified `/login` page. Class advisors are routed to `/class-advisor/dashboard` after authentication.
 
 ### Portal Routes
-- `/class-advisor/login` - Class advisor login page
-- `/class-advisor/dashboard` - Main dashboard with statistics
-- `/class-advisor/assign-courses` - Assign teachers to courses (Year 1-4)
-- `/class-advisor/teacher-preferences` - Manage teacher course preferences
+- `/class-advisor/dashboard` — Stats, quick actions, info cards
+- `/class-advisor/assign-courses` — Assign teachers to courses (per advisor year)
+- `/class-advisor/teacher-preferences` — Manage teacher course preferences
+- `/class-advisor/review-outlines` — Review submitted course outlines
 
 ## Features
 
 ### 1. Dashboard
-- Overview statistics (courses, assignments, preferences, teachers)
-- Quick action cards
-- Helpful tips and responsibilities
+- 4 stat cards: Total Courses, Assignments, Preferences, Teachers
+- 3 quick action links (Assign Courses, Review Outlines, Preferences)
+- Info cards: Responsibilities and Tips
 
 ### 2. Assign Courses
-- Select year (1, 2, 3, or 4)
-- View all courses for selected year
-- Assign teachers to courses via dropdown
-- See preferred assignments (⭐ badge)
-- Remove assignments
-- Assignment summary statistics
+- Auto-detects advisor year from login (stored in localStorage)
+- Gradient banner showing year context
+- Progress bar for assignment completion
+- Teacher dropdown with specialization display
+- Preferred assignment checkbox
+- PDF download of assignments (via jsPDF + autoTable)
+- View mode for existing assignments with reassign option
 
 ### 3. Teacher Preferences
-- Add teacher preferences for courses
-- Set preference level (high, medium, low)
-- Add optional notes
-- View all preferences in table format
-- Delete preferences
-- Automatic preference matching during assignment
+- Add preferences: select teacher + course + level (high/medium/low) + notes
+- Preferences table with badge colors per level
+- Delete individual preferences
+- Info box explaining preference-assignment linking
+
+### 4. Review Outlines
+- Lists outlines where `currentReviewerRole = class_advisor`
+- Status badges (submitted, advisor_review, approved, rejected, etc.)
+- Inline review form with comments + approve/reject buttons
+- File download link per outline
 
 ## Design
 
 ### Color Scheme
-- **Primary Color:** Purple (`purple-600`)
-- **Accent Colors:** Blue, Green, Yellow
-- **Background:** Light gray (`gray-50`)
+- **Sidebar:** Dark slate (`bg-slate-900`) with purple active state (`bg-purple-600`)
+- **Accent:** Purple (`purple-500` / `purple-600`)
+- **Background:** `bg-slate-100`
+- **Cards:** `bg-white rounded-lg border border-slate-200`
+- **Inputs:** `border-slate-300`, focus ring `ring-purple-500`
+- **Table headers:** `bg-slate-50`, `text-[11px] font-semibold text-slate-600 uppercase tracking-wider`
+- **Badges:** `text-[11px] font-semibold`, `rounded` (not rounded-full)
 
 ### Navigation
-- Sticky header with portal branding
-- Tab-based navigation between sections
-- Logout button in header
+- Fixed dark sidebar (w-60) with icon + label nav links
+- Sticky white top header showing current page title
+- Mobile hamburger menu with overlay
+- User avatar + name + sign out in sidebar footer
 
 ## Database Collections
 
@@ -101,15 +111,16 @@ A dedicated portal for class advisors to manage course assignments and teacher p
    - Check assignment summary for completion status
    - Review preferred vs non-preferred assignments
 
-## Key Differences from Admin Portal
+## Key Differences from Other Portals
 
-| Feature | Admin Portal | Class Advisor Portal |
-|---------|-------------|---------------------|
-| **URL** | `/admin/*` | `/class-advisor/*` |
-| **Color** | Blue | Purple |
-| **Access** | Admin users | Class advisors only |
-| **Features** | Full system management | Course assignments only |
-| **Navigation** | Multiple sections | 3 focused tabs |
+| Feature | Admin Portal | Class Advisor Portal | Teacher Portal |
+|---------|-------------|---------------------|----------------|
+| **URL** | `/admin/*` | `/class-advisor/*` | `/teacher/*` |
+| **Accent** | Blue | Purple | Emerald |
+| **Sidebar** | Dark slate | Dark slate | Dark slate |
+| **Access** | Admin users | Class advisors only | Teachers only |
+| **Features** | Full system mgmt | Course assignments + outlines | Schedule + attendance |
+| **Nav items** | 6+ sections | 4 focused pages | 4 focused pages |
 
 ## Security
 
