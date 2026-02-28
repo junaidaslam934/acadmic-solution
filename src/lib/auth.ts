@@ -8,7 +8,7 @@ const COOKIE_NAME = 'auth_token';
 
 export interface JWTPayload {
   userId: string;
-  role: 'admin' | 'student' | 'staff' | 'class-advisor' | 'coordinator';
+  role: 'admin' | 'chairman' | 'co_chairman' | 'ug_coordinator' | 'class_advisor' | 'teacher' | 'student';
   name: string;
   email?: string;
 }

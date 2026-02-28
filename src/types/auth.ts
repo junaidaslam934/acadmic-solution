@@ -1,4 +1,4 @@
-export type UserRole = 'student' | 'staff' | 'class-advisor' | 'coordinator' | 'admin';
+export type UserRole = 'admin' | 'chairman' | 'co_chairman' | 'ug_coordinator' | 'class_advisor' | 'teacher' | 'student';
 
 export interface LoginCredentials {
   email: string;

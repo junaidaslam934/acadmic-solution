@@ -1,214 +1,138 @@
 import { NextRequest, NextResponse } from 'next/server';
-import mongoose from 'mongoose';
 import connectDB from '@/lib/mongodb';
 import CourseAssignment from '@/models/CourseAssignment';
 import Teacher from '@/models/Teacher';
+import Course from '@/models/Course';
 
 export async function GET(request: NextRequest) {
   try {
     await connectDB();
-    
+
     const { searchParams } = new URL(request.url);
     const teacherId = searchParams.get('teacherId');
-    
-    const filter: any = {};
+    const semesterId = searchParams.get('semesterId');
+    const year = searchParams.get('year');
+    const outlineStatus = searchParams.get('outlineStatus');
+
+    const filter: Record<string, unknown> = {};
     if (teacherId) filter.teacherId = teacherId;
-    
-    const assignments = await CourseAssignment.find(filter).sort({ year: 1, semester: 1 }).lean();
-    
-    const db = mongoose.connection.db;
-    if (db) {
-      const coursesCollection = db.collection('allcourses');
-      
-      for (let i = 0; i < assignments.length; i++) {
-        const assignment = assignments[i];
-        if (assignment.courseId) {
-          try {
-            const courseId = assignment.courseId;
-            let course = null;
-            
-            // Try as ObjectId first
-            if (mongoose.Types.ObjectId.isValid(courseId.toString())) {
-              course = await coursesCollection.findOne({ 
-                _id: new mongoose.Types.ObjectId(courseId.toString()) 
-              });
-            }
-            
-            // If not found, try as string
-            if (!course) {
-              course = await coursesCollection.findOne({ _id: courseId });
-            }
-            
-            if (course) {
-              assignments[i].courseId = {
-                _id: course._id,
-                courseCode: course.courseCode || 'N/A',
-                courseName: course.courseName || 'N/A',
-                credits: course.credits || 0,
-              };
-            } else {
-              // If course not found, set default values
-              assignments[i].courseId = {
-                _id: courseId,
-                courseCode: 'N/A',
-                courseName: 'N/A',
-                credits: 0,
-              };
-            }
-          } catch (err) {
-            console.error('Error populating course:', err);
-            assignments[i].courseId = {
-              _id: assignment.courseId,
-              courseCode: 'N/A',
-              courseName: 'N/A',
-              credits: 0,
-            };
-          }
-        }
-      }
-    }
-    
-    return NextResponse.json({ success: true, assignments });
-  } catch (error: any) {
-    console.error('Error fetching assignments:', error);
-    return NextResponse.json(
-      { success: false, error: error.message },
-      { status: 500 }
-    );
+    if (semesterId) filter.semesterId = semesterId;
+    if (year) filter.year = parseInt(year);
+    if (outlineStatus) filter.outlineStatus = outlineStatus;
+
+    const assignments = await CourseAssignment.find(filter)
+      .populate('teacherId', 'name email employeeId')
+      .populate('courseId', 'courseCode courseName credits abbreviation type')
+      .populate('semesterId', 'name status academicYear')
+      .sort({ year: 1, semester: 1 })
+      .lean();
+
+    return NextResponse.json({ success: true, data: assignments, assignments });
+  } catch (error: unknown) {
+    const message = error instanceof Error ? error.message : 'Unknown error';
+    console.error('Error fetching assignments:', message);
+    return NextResponse.json({ success: false, error: message }, { status: 500 });
   }
 }
 
 export async function POST(request: NextRequest) {
   try {
     await connectDB();
-    
+
     const body = await request.json();
-    const { teacherId, courseId, year, semester, isPreferred } = body;
-    
+    const { teacherId, courseId, semesterId, year, semester, sections, isShared, creditHoursAssigned } = body;
+
+    if (!teacherId || !courseId || !year || !semester) {
+      return NextResponse.json(
+        { success: false, error: 'teacherId, courseId, year, and semester are required' },
+        { status: 400 }
+      );
+    }
+
     const teacher = await Teacher.findById(teacherId);
     if (!teacher) {
-      return NextResponse.json(
-        { success: false, error: 'Teacher not found' },
-        { status: 404 }
-      );
+      return NextResponse.json({ success: false, error: 'Teacher not found' }, { status: 404 });
     }
-    
-    const db = mongoose.connection.db;
-    if (!db) {
-      throw new Error('Database connection failed');
-    }
-    
-    const coursesCollection = db.collection('allcourses');
-    let course;
-    
-    if (mongoose.Types.ObjectId.isValid(courseId)) {
-      course = await coursesCollection.findOne({ _id: new mongoose.Types.ObjectId(courseId) });
-    }
-    
+
+    const course = await Course.findById(courseId);
     if (!course) {
-      course = await coursesCollection.findOne({ _id: courseId });
+      return NextResponse.json({ success: false, error: 'Course not found' }, { status: 404 });
     }
-    
-    if (!course) {
-      return NextResponse.json(
-        { success: false, error: 'Course not found' },
-        { status: 404 }
-      );
-    }
-    
-    const updateData: any = { 
-      teacherId, 
-      courseId, 
-      year, 
-      semester, 
-      isPreferred: isPreferred || false
+
+    const assignmentData: Record<string, unknown> = {
+      teacherId,
+      courseId,
+      year,
+      semester,
+      outlineStatus: 'pending',
     };
-    
+    if (semesterId) assignmentData.semesterId = semesterId;
+    if (sections) assignmentData.sections = sections;
+    if (isShared !== undefined) assignmentData.isShared = isShared;
+    if (creditHoursAssigned) assignmentData.creditHoursAssigned = creditHoursAssigned;
+
     const assignment = await CourseAssignment.findOneAndUpdate(
-      { teacherId, courseId, year, semester },
-      updateData,
+      { teacherId, courseId, year, semester, ...(semesterId ? { semesterId } : {}) },
+      assignmentData,
       { upsert: true, new: true }
     );
-    
-    await Teacher.findByIdAndUpdate(
-      teacherId,
-      { classAdvisor: year.toString() },
-      { new: true }
-    );
 
-    // Send webhook to n8n for email notification
-    const webhookData = {
-      teacherId: teacher._id,
-      teacherName: teacher.name,
-      teacherEmail: teacher.email,
-      courseCode: course.courseCode,
-      courseName: course.courseName,
-      year: year,
-      semester: semester,
-      isPreferred: isPreferred || false,
-      assignedAt: new Date().toISOString(),
-    };
+    const populated = await CourseAssignment.findById(assignment._id)
+      .populate('teacherId', 'name email employeeId')
+      .populate('courseId', 'courseCode courseName credits')
+      .lean();
 
-    // Send to n8n webhook asynchronously (non-blocking)
-    (async () => {
-      try {
-        const webhookUrl = 'https://junniauto.app.n8n.cloud/webhook-test/course-assignment';
-        const controller = new AbortController();
-        const timeoutId = setTimeout(() => controller.abort(), 30000); // 30 second timeout
+    return NextResponse.json({ success: true, data: populated, assignment: populated }, { status: 201 });
+  } catch (error: unknown) {
+    const message = error instanceof Error ? error.message : 'Unknown error';
+    console.error('Error creating assignment:', message);
+    return NextResponse.json({ success: false, error: message }, { status: 400 });
+  }
+}
 
-        const webhookResponse = await fetch(webhookUrl, {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify(webhookData),
-          signal: controller.signal,
-        });
+export async function PUT(request: NextRequest) {
+  try {
+    await connectDB();
 
-        clearTimeout(timeoutId);
+    const body = await request.json();
+    const { _id, ...updates } = body;
 
-        if (!webhookResponse.ok) {
-          console.warn('n8n webhook request failed:', webhookResponse.status, webhookResponse.statusText);
-        } else {
-          console.log('n8n webhook called successfully for course assignment');
-        }
-      } catch (webhookError) {
-        console.error('Error calling n8n webhook:', webhookError);
-        // Don't fail the assignment if webhook fails
-      }
-    })();
-    
-    return NextResponse.json({ success: true, assignment }, { status: 201 });
-  } catch (error: any) {
-    console.error('Error creating assignment:', error);
-    return NextResponse.json(
-      { success: false, error: error.message },
-      { status: 400 }
-    );
+    if (!_id) {
+      return NextResponse.json({ success: false, error: 'Assignment _id required' }, { status: 400 });
+    }
+
+    const assignment = await CourseAssignment.findByIdAndUpdate(_id, updates, { new: true })
+      .populate('teacherId', 'name email employeeId')
+      .populate('courseId', 'courseCode courseName credits')
+      .lean();
+
+    if (!assignment) {
+      return NextResponse.json({ success: false, error: 'Assignment not found' }, { status: 404 });
+    }
+
+    return NextResponse.json({ success: true, data: assignment });
+  } catch (error: unknown) {
+    const message = error instanceof Error ? error.message : 'Unknown error';
+    return NextResponse.json({ success: false, error: message }, { status: 500 });
   }
 }
 
 export async function DELETE(request: NextRequest) {
   try {
     await connectDB();
-    
+
     const { searchParams } = new URL(request.url);
     const id = searchParams.get('id');
-    
+
     if (!id) {
-      return NextResponse.json(
-        { success: false, error: 'Assignment ID required' },
-        { status: 400 }
-      );
+      return NextResponse.json({ success: false, error: 'Assignment ID required' }, { status: 400 });
     }
-    
+
     await CourseAssignment.findByIdAndDelete(id);
-    
+
     return NextResponse.json({ success: true, message: 'Assignment deleted' });
-  } catch (error: any) {
-    return NextResponse.json(
-      { success: false, error: error.message },
-      { status: 500 }
-    );
+  } catch (error: unknown) {
+    const message = error instanceof Error ? error.message : 'Unknown error';
+    return NextResponse.json({ success: false, error: message }, { status: 500 });
   }
 }

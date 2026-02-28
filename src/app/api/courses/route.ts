@@ -27,7 +27,7 @@ export async function GET(request: NextRequest) {
 
     // Fallback to Mongoose Course model
     if (courses.length === 0) {
-      const filter = year ? { year: parseInt(year) } : {};
+      const filter = year ? { year: parseInt(year) as 1 | 2 | 3 | 4 } : {};
       courses = await Course.find(filter)
         .sort({ year: 1, semester: 1, courseCode: 1 })
         .lean();
@@ -51,7 +51,12 @@ export async function POST(request: NextRequest) {
       return apiError(error, { status: 400 });
     }
 
-    const course = await Course.create(data!);
+    const course = await Course.create({
+      ...data!,
+      year: data!.year as 1 | 2 | 3 | 4,
+      semester: data!.semester as 1 | 2,
+      credits: data!.credits as 1 | 2 | 3 | 4 | 5 | 6,
+    });
 
     return apiSuccess(
       { message: 'Course created successfully', course },

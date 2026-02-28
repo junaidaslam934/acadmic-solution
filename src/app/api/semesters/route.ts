@@ -1,139 +1,122 @@
-import { NextRequest, NextResponse } from 'next/server';
+import { NextRequest } from 'next/server';
 import connectDB from '@/lib/mongodb';
 import Semester from '@/models/Semester';
+import { apiSuccess, apiError } from '@/lib/api-response';
 
-export async function GET(request: NextRequest) {
+// GET /api/semesters — List all semesters
+export async function GET() {
   try {
     await connectDB();
+    const semesters = await Semester.find()
+      .populate('classAdvisors.userId', 'name email role')
+      .populate('ugCoordinatorId', 'name email')
+      .populate('coChairmanId', 'name email')
+      .populate('chairmanId', 'name email')
+      .sort({ createdAt: -1 })
+      .lean();
 
-    const semesters = await Semester.find().sort({ createdAt: -1 });
-
-    return NextResponse.json({ success: true, semesters });
-  } catch (error: any) {
+    return apiSuccess({ semesters });
+  } catch (error) {
     console.error('Error fetching semesters:', error);
-    return NextResponse.json(
-      { success: false, error: error.message },
-      { status: 500 }
-    );
+    return apiError('Failed to fetch semesters', { status: 500 });
   }
 }
 
+// POST /api/semesters — Create a new semester
 export async function POST(request: NextRequest) {
   try {
     await connectDB();
-
     const body = await request.json();
-    const { name, startDate, endDate } = body;
+    const { name, academicYear, type, startDate, endDate, sections, timeSlots, workingDays } = body;
 
-    if (!name || !startDate || !endDate) {
-      return NextResponse.json(
-        { success: false, error: 'Name, startDate, and endDate are required' },
-        { status: 400 }
-      );
+    if (!name || !academicYear || !type || !startDate || !endDate) {
+      return apiError('Name, academic year, type, start date, and end date are required', { status: 400 });
     }
 
     const start = new Date(startDate);
     const end = new Date(endDate);
-
     if (start >= end) {
-      return NextResponse.json(
-        { success: false, error: 'Start date must be before end date' },
-        { status: 400 }
-      );
+      return apiError('Start date must be before end date', { status: 400 });
     }
 
-    const semester = new Semester({
+    const semester = await Semester.create({
       name,
+      academicYear,
+      type,
       startDate: start,
       endDate: end,
+      status: 'planning',
+      sections: sections || { 1: ['A', 'B'], 2: ['A', 'B'], 3: ['A', 'B'], 4: ['A', 'B'] },
+      timeSlots: timeSlots || undefined,
+      workingDays: workingDays || undefined,
     });
 
-    await semester.save();
-
-    return NextResponse.json({ success: true, semester }, { status: 201 });
+    return apiSuccess({ semester }, { status: 201 });
   } catch (error: any) {
     console.error('Error creating semester:', error);
-    return NextResponse.json(
-      { success: false, error: error.message },
-      { status: 400 }
-    );
+    if (error.code === 11000) {
+      return apiError('A semester with this name already exists', { status: 409 });
+    }
+    return apiError('Failed to create semester', { status: 500 });
   }
 }
 
+// PUT /api/semesters — Update a semester
 export async function PUT(request: NextRequest) {
   try {
     await connectDB();
-
     const body = await request.json();
-    const { id, name, startDate, endDate } = body;
+    const { id, ...updates } = body;
 
     if (!id) {
-      return NextResponse.json(
-        { success: false, error: 'Semester ID is required' },
-        { status: 400 }
-      );
+      return apiError('Semester ID is required', { status: 400 });
     }
 
-    const start = new Date(startDate);
-    const end = new Date(endDate);
+    if (updates.startDate) updates.startDate = new Date(updates.startDate);
+    if (updates.endDate) updates.endDate = new Date(updates.endDate);
+    if (updates.outlineDeadline) updates.outlineDeadline = new Date(updates.outlineDeadline);
+    if (updates.schedulingDeadline) updates.schedulingDeadline = new Date(updates.schedulingDeadline);
 
-    if (start >= end) {
-      return NextResponse.json(
-        { success: false, error: 'Start date must be before end date' },
-        { status: 400 }
-      );
-    }
-
-    const semester = await Semester.findByIdAndUpdate(
-      id,
-      {
-        name,
-        startDate: start,
-        endDate: end,
-        updatedAt: new Date(),
-      },
-      { new: true }
-    );
+    const semester = await Semester.findByIdAndUpdate(id, updates, { new: true })
+      .populate('classAdvisors.userId', 'name email role')
+      .populate('ugCoordinatorId', 'name email')
+      .populate('coChairmanId', 'name email')
+      .populate('chairmanId', 'name email');
 
     if (!semester) {
-      return NextResponse.json(
-        { success: false, error: 'Semester not found' },
-        { status: 404 }
-      );
+      return apiError('Semester not found', { status: 404 });
     }
 
-    return NextResponse.json({ success: true, semester });
-  } catch (error: any) {
+    return apiSuccess({ semester });
+  } catch (error) {
     console.error('Error updating semester:', error);
-    return NextResponse.json(
-      { success: false, error: error.message },
-      { status: 400 }
-    );
+    return apiError('Failed to update semester', { status: 500 });
   }
 }
 
+// DELETE /api/semesters — Delete a semester
 export async function DELETE(request: NextRequest) {
   try {
     await connectDB();
-
     const { searchParams } = new URL(request.url);
     const id = searchParams.get('id');
 
     if (!id) {
-      return NextResponse.json(
-        { success: false, error: 'Semester ID is required' },
-        { status: 400 }
-      );
+      return apiError('Semester ID is required', { status: 400 });
+    }
+
+    const semester = await Semester.findById(id);
+    if (!semester) {
+      return apiError('Semester not found', { status: 404 });
+    }
+    if (semester.status !== 'planning') {
+      return apiError('Only semesters in planning status can be deleted', { status: 400 });
     }
 
     await Semester.findByIdAndDelete(id);
-
-    return NextResponse.json({ success: true, message: 'Semester deleted' });
-  } catch (error: any) {
+    return apiSuccess({ message: 'Semester deleted' });
+  } catch (error) {
     console.error('Error deleting semester:', error);
-    return NextResponse.json(
-      { success: false, error: error.message },
-      { status: 500 }
-    );
+    return apiError('Failed to delete semester', { status: 500 });
   }
 }

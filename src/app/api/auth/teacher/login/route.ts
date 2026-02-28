@@ -33,7 +33,7 @@ export async function POST(request: NextRequest) {
     // Issue JWT token
     const token = signToken({
       userId: teacher._id.toString(),
-      role: 'staff',
+      role: 'teacher',
       name: teacher.name,
       email: teacher.email,
     });

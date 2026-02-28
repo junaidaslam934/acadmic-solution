@@ -1,0 +1,114 @@
+⚠ Warning: Next.js inferred your workspace root, but it may not be correct.
+ We detected multiple lockfiles and selected the directory of C:\Users\sanaa\package-lock.json as the root directory.
+ To silence this warning, set `turbopack.root` in your Next.js config, or consider removing one of the lockfiles if it's not needed.
+   See https://nextjs.org/docs/app/api-reference/config/next-config-js/turbopack#root-directory for more information.
+ Detected additional lockfiles: 
+   * C:\Users\sanaa\acadmic-solution\package-lock.json
+
+▲ Next.js 16.1.6 (Turbopack)
+- Environments: .env.local
+
+⚠ The "middleware" file convention is deprecated. Please use "proxy" instead. Learn more: https://nextjs.org/docs/messages/middleware-to-proxy
+  Creating an optimized production build ...
+✓ Compiled successfully in 4.7s
+  Running TypeScript ...
+  Collecting page data using 7 workers ...
+(node:35708) [MONGOOSE] Warning: Duplicate schema index on {"email":1} found. This is often due to declaring an index using both "index: true" and "schema.index()". Please remove the duplicate index definition.
+(Use `node --trace-warnings ...` to show where the warning was created)
+(node:36176) [MONGOOSE] Warning: Duplicate schema index on {"email":1} found. This is often due to declaring an index using both "index: true" and "schema.index()". Please remove the duplicate index definition.
+(Use `node --trace-warnings ...` to show where the warning was created)
+(node:1864) [MONGOOSE] Warning: Duplicate schema index on {"email":1} found. This is often due to declaring an index using both "index: true" and "schema.index()". Please remove the duplicate index definition.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  Generating static pages using 7 workers (0/76) ...
+  Generating static pages using 7 workers (19/76) 
+  Generating static pages using 7 workers (38/76) 
+(node:33668) [MONGOOSE] Warning: Duplicate schema index on {"email":1} found. This is often due to declaring an index using both "index: true" and "schema.index()". Please remove the duplicate index definition.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  Generating static pages using 7 workers (57/76) 
+✓ Generating static pages using 7 workers (76/76) in 394.5ms
+  Finalizing page optimization ...
+
+Route (app)
+┌ ○ /
+├ ○ /_not-found
+├ ○ /admin/class-advisors
+├ ○ /admin/class-advisors/assign-courses
+├ ○ /admin/class-advisors/teacher-preferences
+├ ○ /admin/courses
+├ ○ /admin/dashboard
+├ ○ /admin/debug
+├ ○ /admin/forgot-password
+├ ○ /admin/login
+├ ○ /admin/outlines
+├ ○ /admin/reset-password
+├ ○ /admin/semesters
+├ ○ /admin/students
+├ ○ /admin/teachers
+├ ○ /admin/timetable-generator
+├ ○ /admin/timetables
+├ ○ /admin/users
+├ ○ /admin/weeks
+├ ƒ /api/attendance
+├ ƒ /api/auth/admin/login
+├ ƒ /api/auth/class-advisor/login
+├ ƒ /api/auth/coordinator/login
+├ ƒ /api/auth/login
+├ ƒ /api/auth/logout
+├ ƒ /api/auth/me
+├ ƒ /api/auth/student/login
+├ ƒ /api/auth/teacher/login
+├ ƒ /api/bookings
+├ ƒ /api/class-advisors
+├ ƒ /api/coordinators
+├ ƒ /api/course-assignments
+├ ƒ /api/courses
+├ ƒ /api/forgot-password
+├ ƒ /api/generate-weeks
+├ ƒ /api/holidays
+├ ƒ /api/makeup-classes
+├ ƒ /api/notifications
+├ ƒ /api/outlines
+├ ƒ /api/outlines/[id]/review
+├ ƒ /api/reset-password
+├ ƒ /api/semester-calendar
+├ ƒ /api/semester-weeks
+├ ƒ /api/semesters
+├ ƒ /api/send-advisor-emails
+├ ƒ /api/student-attendance
+├ ƒ /api/student-courses
+├ ƒ /api/students
+├ ƒ /api/students-by-class
+├ ƒ /api/teacher-attendance-report
+├ ƒ /api/teacher-preferences
+├ ƒ /api/teachers
+├ ƒ /api/test-db
+├ ƒ /api/timetable
+├ ƒ /api/upload-pdf
+├ ƒ /api/upload-timetable
+├ ƒ /api/upload-to-n8n
+├ ƒ /api/users
+├ ƒ /api/users/[id]
+├ ○ /class-advisor/assign-courses
+├ ○ /class-advisor/dashboard
+├ ○ /class-advisor/login
+├ ○ /class-advisor/review-outlines
+├ ○ /class-advisor/teacher-preferences
+├ ○ /coordinator/dashboard
+├ ○ /forgot-password
+├ ○ /login
+├ ○ /reset-password
+├ ○ /routine
+├ ○ /student/attendance
+├ ○ /student/courses
+├ ○ /student/login
+├ ○ /teacher/attendance
+├ ○ /teacher/dashboard
+├ ○ /teacher/my-courses
+└ ○ /teacher/schedule
+
+
+ƒ Proxy (Middleware)
+
+○  (Static)   prerendered as static content
+ƒ  (Dynamic)  server-rendered on demand
+
