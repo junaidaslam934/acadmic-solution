@@ -159,70 +159,49 @@ export default function SchedulePage() {
     <div className="space-y-4">
       {/* Controls */}
       <div className="flex flex-wrap gap-3 items-center">
-        <select
-          value={selectedSemId}
-          onChange={(e) => setSelectedSemId(e.target.value)}
-          className="px-3 py-2 border border-gray-200 rounded-lg text-sm bg-white focus:outline-none focus:ring-2 focus:ring-green-500"
-        >
+        <select value={selectedSemId} onChange={(e) => setSelectedSemId(e.target.value)}
+          className="px-3 py-2 border border-slate-300 rounded-md text-sm text-slate-900 bg-white focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500">
           <option value="">Select Semester</option>
           {semesters.map((s) => (
-            <option key={s._id} value={s._id}>
-              {s.name} ({s.status})
-            </option>
+            <option key={s._id} value={s._id}>{s.name} ({s.status})</option>
           ))}
         </select>
-        <select
-          value={selectedYear}
-          onChange={(e) => setSelectedYear(Number(e.target.value))}
-          className="px-3 py-2 border border-gray-200 rounded-lg text-sm bg-white focus:outline-none focus:ring-2 focus:ring-green-500"
-        >
+        <select value={selectedYear} onChange={(e) => setSelectedYear(Number(e.target.value))}
+          className="px-3 py-2 border border-slate-300 rounded-md text-sm text-slate-900 bg-white focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500">
           {[1, 2, 3, 4].map((y) => (
-            <option key={y} value={y}>
-              Year {y}
-            </option>
+            <option key={y} value={y}>Year {y}</option>
           ))}
         </select>
-        <select
-          value={selectedSection}
-          onChange={(e) => setSelectedSection(e.target.value)}
-          className="px-3 py-2 border border-gray-200 rounded-lg text-sm bg-white focus:outline-none focus:ring-2 focus:ring-green-500"
-        >
-          {(
-            selectedSem?.sections?.[String(selectedYear)] || ['A', 'B']
-          ).map((s: string) => (
-            <option key={s} value={s}>
-              Section {s}
-            </option>
+        <select value={selectedSection} onChange={(e) => setSelectedSection(e.target.value)}
+          className="px-3 py-2 border border-slate-300 rounded-md text-sm text-slate-900 bg-white focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500">
+          {(selectedSem?.sections?.[String(selectedYear)] || ['A', 'B']).map((s: string) => (
+            <option key={s} value={s}>Section {s}</option>
           ))}
         </select>
       </div>
 
       {/* Timetable grid */}
       {loading ? (
-        <div className="bg-white rounded-xl border border-gray-200 p-12 text-center text-gray-500">
+        <div className="bg-white rounded-lg border border-slate-200 p-12 text-center text-sm text-slate-400">
           Loading timetable...
         </div>
       ) : (
-        <div className="bg-white rounded-xl border border-gray-200 overflow-x-auto">
+        <div className="bg-white rounded-lg border border-slate-200 overflow-x-auto">
           <table className="w-full text-sm">
             <thead>
-              <tr className="border-b border-gray-100 bg-gray-50/50">
-                <th className="px-3 py-2.5 text-left font-medium text-gray-600 w-20">Slot</th>
+              <tr className="border-b border-slate-100 bg-slate-50">
+                <th className="px-3 py-2.5 text-left text-[11px] font-semibold text-slate-600 uppercase tracking-wider w-20">Slot</th>
                 {workingDays.map((d) => (
-                  <th key={d} className="px-3 py-2.5 text-center font-medium text-gray-600">
-                    {DAY_NAMES[d]}
-                  </th>
+                  <th key={d} className="px-3 py-2.5 text-center text-[11px] font-semibold text-slate-600 uppercase tracking-wider">{DAY_NAMES[d]}</th>
                 ))}
               </tr>
             </thead>
             <tbody>
               {timeSlots.map((slot) => (
-                <tr key={slot.slotNumber} className="border-b border-gray-50">
-                  <td className="px-3 py-2 text-xs text-gray-500">
+                <tr key={slot.slotNumber} className="border-b border-slate-50">
+                  <td className="px-3 py-2 text-xs text-slate-500">
                     <div className="font-medium">Slot {slot.slotNumber}</div>
-                    <div>
-                      {slot.startTime}–{slot.endTime}
-                    </div>
+                    <div>{slot.startTime}–{slot.endTime}</div>
                   </td>
                   {workingDays.map((day) => {
                     const b = getBooking(day, slot.slotNumber);
@@ -230,28 +209,14 @@ export default function SchedulePage() {
                     return (
                       <td key={day} className="px-2 py-2 text-center">
                         {b ? (
-                          <div
-                            className={`px-2 py-1.5 rounded-lg text-xs ${
-                              isMyBooking
-                                ? 'bg-green-100 text-green-800 border border-green-200'
-                                : 'bg-gray-100 text-gray-600'
-                            }`}
-                          >
-                            <p className="font-medium">
-                              {b.courseId?.abbreviation || b.courseId?.courseCode || '?'}
-                            </p>
+                          <div className={`px-2 py-1.5 rounded-md text-xs ${isMyBooking ? 'bg-emerald-50 text-emerald-800 border border-emerald-200' : 'bg-slate-100 text-slate-600'}`}>
+                            <p className="font-semibold">{b.courseId?.abbreviation || b.courseId?.courseCode || '?'}</p>
                             <p className="text-[10px] opacity-70">{b.teacherId?.name}</p>
                           </div>
                         ) : assignments.length > 0 && selectedSem?.status === 'scheduling' ? (
-                          <BookSlotDropdown
-                            assignments={assignments}
-                            onBook={(aId, cId) =>
-                              handleBookSlot(day, slot.slotNumber, aId, cId)
-                            }
-                            disabled={booking}
-                          />
+                          <BookSlotDropdown assignments={assignments} onBook={(aId, cId) => handleBookSlot(day, slot.slotNumber, aId, cId)} disabled={booking} />
                         ) : (
-                          <span className="text-gray-300">—</span>
+                          <span className="text-slate-300">—</span>
                         )}
                       </td>
                     );
@@ -264,12 +229,12 @@ export default function SchedulePage() {
       )}
 
       {/* Legend */}
-      <div className="flex gap-4 text-xs text-gray-500">
-        <div className="flex items-center gap-1">
-          <span className="w-3 h-3 rounded bg-green-100 border border-green-200" /> Your classes
+      <div className="flex gap-4 text-xs text-slate-500">
+        <div className="flex items-center gap-1.5">
+          <span className="w-3 h-3 rounded bg-emerald-50 border border-emerald-200" /> Your classes
         </div>
-        <div className="flex items-center gap-1">
-          <span className="w-3 h-3 rounded bg-gray-100" /> Other classes
+        <div className="flex items-center gap-1.5">
+          <span className="w-3 h-3 rounded bg-slate-100" /> Other classes
         </div>
       </div>
     </div>
@@ -287,21 +252,21 @@ function BookSlotDropdown({
 }) {
   const [open, setOpen] = useState(false);
 
-  if (assignments.length === 0) return <span className="text-gray-300">—</span>;
+  if (assignments.length === 0) return <span className="text-slate-300">—</span>;
 
   return (
     <div className="relative">
       <button
         onClick={() => setOpen(!open)}
         disabled={disabled}
-        className="w-full px-2 py-1.5 text-xs text-green-600 border border-dashed border-green-300 rounded-lg hover:bg-green-50 transition-colors disabled:opacity-50"
+        className="w-full px-2 py-1.5 text-xs text-emerald-600 border border-dashed border-emerald-300 rounded-md hover:bg-emerald-50 transition-colors disabled:opacity-50"
       >
         + Book
       </button>
       {open && (
         <>
           <div className="fixed inset-0 z-10" onClick={() => setOpen(false)} />
-          <div className="absolute z-20 top-full mt-1 left-0 bg-white border border-gray-200 rounded-lg shadow-lg py-1 min-w-[160px]">
+          <div className="absolute z-20 top-full mt-1 left-0 bg-white border border-slate-200 rounded-md shadow-lg py-1 min-w-[160px]">
             {assignments.map((a) => (
               <button
                 key={a._id}
@@ -309,7 +274,7 @@ function BookSlotDropdown({
                   onBook(a._id, a.courseId?._id || '');
                   setOpen(false);
                 }}
-                className="w-full text-left px-3 py-1.5 text-xs hover:bg-gray-50 transition-colors"
+                className="w-full text-left px-3 py-1.5 text-xs hover:bg-slate-50 transition-colors"
               >
                 {a.courseId?.courseCode} — {a.courseId?.courseName}
               </button>

@@ -228,125 +228,123 @@ export default function AttendanceTracker({ teacherId }: AttendanceTrackerProps)
   const absentCount = students.filter(s => s.isAbsent).length;
 
   return (
-    <div className="bg-white rounded-lg shadow-md p-6">
-      <h2 className="text-2xl font-bold text-gray-900 mb-6">Mark Attendance</h2>
+    <div className="space-y-4">
+      <div className="bg-white rounded-lg border border-slate-200 p-5">
+        <h2 className="text-sm font-semibold text-slate-800 mb-4">Mark Attendance</h2>
 
-      {message && (
-        <div className={`mb-4 p-3 rounded ${message.includes('success') ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'}`}>
-          {message}
-        </div>
-      )}
+        {message && (
+          <div className={`mb-4 px-3 py-2 rounded-md text-xs font-medium ${message.includes('success') ? 'bg-emerald-50 text-emerald-700 border border-emerald-200' : 'bg-red-50 text-red-700 border border-red-200'}`}>
+            {message}
+          </div>
+        )}
 
-      {isLoading && <div className="text-center py-8">Loading...</div>}
+        {isLoading && <div className="text-center py-8 text-sm text-slate-400">Loading...</div>}
 
-      {!isLoading && (
-        <>
-          {/* Course Selection */}
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">Course</label>
-              <select
-                value={selectedCourse}
-                onChange={(e) => setSelectedCourse(e.target.value)}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-              >
-                <option value="">Select a course ({assignedCourses.length} available)</option>
-                {assignedCourses.length > 0 ? (
-                  assignedCourses.map((course) => (
-                    <option key={course._id} value={course._id}>
-                      {course.courseCode || 'N/A'} - {course.courseName || 'N/A'} (Year {course.year})
+        {!isLoading && (
+          <>
+            {/* Course Selection */}
+            <div className="grid grid-cols-1 md:grid-cols-4 gap-3 mb-5">
+              <div>
+                <label className="block text-[11px] font-semibold text-slate-600 uppercase tracking-wider mb-1.5">Course</label>
+                <select
+                  value={selectedCourse}
+                  onChange={(e) => setSelectedCourse(e.target.value)}
+                  className="w-full px-3 py-2 border border-slate-300 rounded-md text-sm text-slate-900 bg-white focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
+                >
+                  <option value="">Select a course ({assignedCourses.length} available)</option>
+                  {assignedCourses.length > 0 ? (
+                    assignedCourses.map((course) => (
+                      <option key={course._id} value={course._id}>
+                        {course.courseCode || 'N/A'} - {course.courseName || 'N/A'} (Year {course.year})
+                      </option>
+                    ))
+                  ) : (
+                    <option disabled>No courses assigned</option>
+                  )}
+                </select>
+              </div>
+
+              <div>
+                <label className="block text-[11px] font-semibold text-slate-600 uppercase tracking-wider mb-1.5">Section</label>
+                <select
+                  value={selectedSection}
+                  onChange={(e) => setSelectedSection(e.target.value as 'A' | 'B' | 'C')}
+                  className="w-full px-3 py-2 border border-slate-300 rounded-md text-sm text-slate-900 bg-white focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
+                >
+                  <option value="A">Section A</option>
+                  <option value="B">Section B</option>
+                  <option value="C">Section C</option>
+                </select>
+              </div>
+
+              <div>
+                <label className="block text-[11px] font-semibold text-slate-600 uppercase tracking-wider mb-1.5">Week</label>
+                <select
+                  value={selectedWeek}
+                  onChange={(e) => setSelectedWeek(e.target.value)}
+                  className="w-full px-3 py-2 border border-slate-300 rounded-md text-sm text-slate-900 bg-white focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
+                >
+                  <option value="">Select a week ({weeks.length} available)</option>
+                  {weeks.map((week) => (
+                    <option key={week._id} value={week._id}>
+                      Week {week.weekNumber} ({new Date(week.startDate).toLocaleDateString()} -{' '}
+                      {new Date(week.endDate).toLocaleDateString()})
+                      {week.isHoliday ? ' [Holiday]' : ''}
                     </option>
-                  ))
-                ) : (
-                  <option disabled>No courses assigned</option>
-                )}
-              </select>
-            </div>
+                  ))}
+                </select>
+              </div>
 
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">Section</label>
-              <select
-                value={selectedSection}
-                onChange={(e) => setSelectedSection(e.target.value as 'A' | 'B' | 'C')}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-              >
-                <option value="A">Section A</option>
-                <option value="B">Section B</option>
-                <option value="C">Section C</option>
-              </select>
-            </div>
+              <div>
+                <label className="block text-[11px] font-semibold text-slate-600 uppercase tracking-wider mb-1.5">Session</label>
+                <select
+                  value={selectedSession}
+                  onChange={(e) => setSelectedSession(parseInt(e.target.value))}
+                  className="w-full px-3 py-2 border border-slate-300 rounded-md text-sm text-slate-900 bg-white focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
+                >
+                  {selectedCourseData && 
+                    Array.from({ length: selectedCourseData.credits || 1 }, (_, i) => (
+                      <option key={i + 1} value={i + 1}>
+                        Session {i + 1}
+                      </option>
+                    ))
+                  }
+                </select>
+              </div>
 
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">Week</label>
-              <select
-                value={selectedWeek}
-                onChange={(e) => setSelectedWeek(e.target.value)}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-              >
-                <option value="">Select a week ({weeks.length} available)</option>
-                {weeks.map((week) => (
-                  <option key={week._id} value={week._id}>
-                    Week {week.weekNumber} ({new Date(week.startDate).toLocaleDateString()} -{' '}
-                    {new Date(week.endDate).toLocaleDateString()})
-                    {week.isHoliday ? ' [Holiday]' : ''}
-                  </option>
-                ))}
-              </select>
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">Session</label>
-              <select
-                value={selectedSession}
-                onChange={(e) => setSelectedSession(parseInt(e.target.value))}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-              >
-                {selectedCourseData && 
-                  Array.from({ length: selectedCourseData.credits || 1 }, (_, i) => (
-                    <option key={i + 1} value={i + 1}>
-                      Session {i + 1}
-                    </option>
-                  ))
-                }
-              </select>
-            </div>
-
-            <div className="flex items-end">
-              <div className="text-sm text-gray-600">
-                <p>Total: {students.length}</p>
-                <p className="text-red-600 font-medium">Absent: {absentCount}</p>
-                {selectedCourseData && (
-                  <p className="text-blue-600 font-medium">
-                    Max per week: {selectedCourseData.credits || 1}
-                  </p>
-                )}
+              <div className="flex items-end">
+                <div className="text-xs text-slate-500 space-y-0.5">
+                  <p>Total: <span className="font-medium text-slate-700">{students.length}</span></p>
+                  <p>Absent: <span className="font-medium text-red-600">{absentCount}</span></p>
+                  {selectedCourseData && (
+                    <p>Max/week: <span className="font-medium text-emerald-600">{selectedCourseData.credits || 1}</span></p>
+                  )}
+                </div>
               </div>
             </div>
-          </div>
 
-          {/* Students List */}
-          {students.length > 0 ? (
-            <div className="mb-6">
-              <div className="overflow-x-auto">
-                <table className="w-full">
-                  <thead className="bg-gray-100 border-b">
-                    <tr>
-                      <th className="px-4 py-3 text-left text-sm font-semibold text-gray-700">Roll Number</th>
-                      <th className="px-4 py-3 text-left text-sm font-semibold text-gray-700">Student Name</th>
-                      <th className="px-4 py-3 text-center text-sm font-semibold text-gray-700">Mark Absent</th>
+            {/* Students List */}
+            {students.length > 0 ? (
+              <div className="mb-4 overflow-x-auto rounded-md border border-slate-200">
+                <table className="w-full text-sm">
+                  <thead>
+                    <tr className="bg-slate-50 border-b border-slate-100">
+                      <th className="px-3 py-2.5 text-left text-[11px] font-semibold text-slate-600 uppercase tracking-wider">Roll Number</th>
+                      <th className="px-3 py-2.5 text-left text-[11px] font-semibold text-slate-600 uppercase tracking-wider">Student Name</th>
+                      <th className="px-3 py-2.5 text-center text-[11px] font-semibold text-slate-600 uppercase tracking-wider">Mark Absent</th>
                     </tr>
                   </thead>
-                  <tbody>
+                  <tbody className="divide-y divide-slate-100">
                     {students.map((student, index) => (
-                      <tr key={index} className={`border-b ${student.isAbsent ? 'bg-red-50' : 'hover:bg-gray-50'}`}>
-                        <td className="px-4 py-3 text-sm text-gray-900">{student.rollNumber}</td>
-                        <td className="px-4 py-3 text-sm text-gray-900">{student.studentName}</td>
-                        <td className="px-4 py-3 text-center">
+                      <tr key={index} className={student.isAbsent ? 'bg-red-50/50' : 'hover:bg-slate-50/50'}>
+                        <td className="px-3 py-2.5 text-sm text-slate-900">{student.rollNumber}</td>
+                        <td className="px-3 py-2.5 text-sm text-slate-700">{student.studentName}</td>
+                        <td className="px-3 py-2.5 text-center">
                           <input
                             type="checkbox"
                             checked={student.isAbsent}
                             onChange={() => toggleAbsent(index)}
-                            className="w-5 h-5 text-red-600 rounded focus:ring-2 focus:ring-red-500"
+                            className="w-4 h-4 text-red-600 rounded border-slate-300 focus:ring-2 focus:ring-red-500"
                           />
                         </td>
                       </tr>
@@ -354,25 +352,25 @@ export default function AttendanceTracker({ teacherId }: AttendanceTrackerProps)
                   </tbody>
                 </table>
               </div>
-            </div>
-          ) : (
-            <div className="text-center py-8 text-gray-500">
-              {selectedCourseData ? 'No students in this section' : 'Select a course to view students'}
-            </div>
-          )}
+            ) : (
+              <div className="text-center py-8 text-sm text-slate-400">
+                {selectedCourseData ? 'No students in this section' : 'Select a course to view students'}
+              </div>
+            )}
 
-          {/* Submit Button */}
-          {students.length > 0 && (
-            <button
-              onClick={handleSubmit}
-              disabled={isSubmitting}
-              className="w-full bg-blue-600 text-white py-2 rounded-md hover:bg-blue-700 font-medium transition-colors disabled:bg-gray-400"
-            >
-              {isSubmitting ? 'Submitting...' : 'Submit Attendance'}
-            </button>
-          )}
-        </>
-      )}
+            {/* Submit Button */}
+            {students.length > 0 && (
+              <button
+                onClick={handleSubmit}
+                disabled={isSubmitting}
+                className="w-full bg-emerald-600 text-white py-2 rounded-md text-sm font-medium hover:bg-emerald-700 transition-colors disabled:bg-slate-300 disabled:cursor-not-allowed"
+              >
+                {isSubmitting ? 'Submitting...' : 'Submit Attendance'}
+              </button>
+            )}
+          </>
+        )}
+      </div>
     </div>
   );
 }

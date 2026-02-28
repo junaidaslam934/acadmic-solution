@@ -91,16 +91,16 @@ export default function MyCoursesPage() {
   };
 
   if (loading) {
-    return <div className="flex items-center justify-center py-24 text-gray-500">Loading...</div>;
+    return <div className="flex items-center justify-center py-24 text-sm text-slate-400">Loading...</div>;
   }
 
   return (
     <div className="space-y-4">
-      <p className="text-sm text-gray-500">{assignments.length} course(s) assigned to you</p>
+      <p className="text-xs text-slate-500">{assignments.length} course(s) assigned to you</p>
 
       {assignments.length === 0 ? (
-        <div className="bg-white rounded-xl border border-gray-200 p-12 text-center">
-          <p className="text-gray-500">No courses assigned yet.</p>
+        <div className="bg-white rounded-lg border border-slate-200 p-12 text-center">
+          <p className="text-sm text-slate-400">No courses assigned yet.</p>
         </div>
       ) : (
         <div className="space-y-3">
@@ -109,70 +109,50 @@ export default function MyCoursesPage() {
             const canSubmit = a.outlineStatus === 'pending' || a.outlineStatus === 'rejected';
 
             return (
-              <div key={a._id} className="bg-white rounded-xl border border-gray-200 p-5">
+              <div key={a._id} className="bg-white rounded-lg border border-slate-200 p-5">
                 <div className="flex items-start justify-between gap-4">
                   <div>
-                    <h3 className="font-medium text-gray-900">
+                    <h3 className="text-sm font-semibold text-slate-900">
                       {a.courseId?.courseCode || 'N/A'} — {a.courseId?.courseName || 'N/A'}
                     </h3>
-                    <p className="text-sm text-gray-500 mt-0.5">
-                      Year {a.year} &middot; Semester {a.semester}{' '}
-                      {a.courseId?.credits ? `· ${a.courseId.credits} Credits` : ''}
+                    <p className="text-xs text-slate-500 mt-0.5">
+                      Year {a.year} · Semester {a.semester}
+                      {a.courseId?.credits ? ` · ${a.courseId.credits} Credits` : ''}
                       {a.sections?.length ? ` · Sections: ${a.sections.join(', ')}` : ''}
                     </p>
                     {a.semesterId && (
-                      <p className="text-xs text-gray-400 mt-1">
-                        {a.semesterId.name}
-                      </p>
+                      <p className="text-[11px] text-slate-400 mt-0.5">{a.semesterId.name}</p>
                     )}
                   </div>
-                  <span className={`px-2.5 py-0.5 rounded-full text-xs font-medium flex-shrink-0 ${status.color}`}>
+                  <span className={`px-2 py-0.5 rounded text-[11px] font-semibold flex-shrink-0 ${status.color}`}>
                     {status.label}
                   </span>
                 </div>
 
-                {/* Outline submission */}
                 {canSubmit && submittingId === a._id ? (
-                  <div className="mt-4 border-t border-gray-100 pt-4 space-y-3">
+                  <div className="mt-4 border-t border-slate-100 pt-4 space-y-3">
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">
-                        Outline File URL
-                      </label>
-                      <input
-                        type="url"
-                        value={outlineUrl}
-                        onChange={(e) => setOutlineUrl(e.target.value)}
-                        className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-green-500"
-                        placeholder="https://drive.google.com/... or cloudinary URL"
-                      />
-                      <p className="text-xs text-gray-400 mt-1">
-                        Upload your outline PDF somewhere and paste the link here.
-                      </p>
+                      <label className="block text-xs font-semibold text-slate-700 mb-1.5">Outline File URL</label>
+                      <input type="url" value={outlineUrl} onChange={(e) => setOutlineUrl(e.target.value)}
+                        className="w-full px-3 py-2 border border-slate-300 rounded-md text-sm text-slate-900 bg-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
+                        placeholder="https://drive.google.com/... or cloudinary URL" />
+                      <p className="text-[11px] text-slate-400 mt-1">Upload your outline PDF and paste the link here.</p>
                     </div>
                     <div className="flex gap-2">
-                      <button
-                        onClick={() => handleSubmitOutline(a)}
-                        className="px-4 py-2 bg-green-600 text-white text-sm font-medium rounded-lg hover:bg-green-700 transition-colors"
-                      >
+                      <button onClick={() => handleSubmitOutline(a)}
+                        className="px-4 py-2 bg-emerald-600 text-white text-sm font-medium rounded-md hover:bg-emerald-700 transition-colors">
                         Submit Outline
                       </button>
-                      <button
-                        onClick={() => {
-                          setSubmittingId(null);
-                          setOutlineUrl('');
-                        }}
-                        className="px-4 py-2 text-sm text-gray-600 hover:text-gray-800 transition-colors"
-                      >
+                      <button onClick={() => { setSubmittingId(null); setOutlineUrl(''); }}
+                        className="px-4 py-2 text-sm text-slate-600 hover:text-slate-800 transition-colors">
                         Cancel
                       </button>
                     </div>
                   </div>
                 ) : canSubmit ? (
                   <div className="mt-3">
-                    <button
-                      onClick={() => setSubmittingId(a._id)}
-                      className="px-3 py-1.5 text-sm text-green-600 border border-green-200 rounded-lg hover:bg-green-50 transition-colors"
-                    >
+                    <button onClick={() => setSubmittingId(a._id)}
+                      className="px-3 py-1.5 text-sm text-emerald-600 border border-emerald-200 rounded-md hover:bg-emerald-50 transition-colors font-medium">
                       Submit Outline
                     </button>
                   </div>
