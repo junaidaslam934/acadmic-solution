@@ -1,56 +1,35 @@
-import { NextRequest, NextResponse } from 'next/server';
+import { NextRequest } from 'next/server';
 import mongoose from 'mongoose';
 import connectDB from '@/lib/mongodb';
+import { signToken, createAuthCookie } from '@/lib/auth';
+import { apiSuccess, apiError } from '@/lib/api-response';
+import { adminLoginSchema, validateBody } from '@/lib/validations';
 
 export async function POST(request: NextRequest) {
   try {
-    console.log('Admin login endpoint called');
     await connectDB();
 
     const body = await request.json();
-    const { key } = body;
+    const { data, error } = validateBody(adminLoginSchema, body);
 
-    console.log('Admin key received:', key);
-
-    if (!key) {
-      return NextResponse.json(
-        { success: false, message: 'Key is required' },
-        { status: 400 }
-      );
+    if (error) {
+      return apiError(error, { status: 400 });
     }
+
+    const key = typeof data!.key === 'string' ? data!.key : data!.key.keys;
 
     // Query the admin collection directly
     const db = mongoose.connection.db;
     if (!db) {
-      throw new Error('Database connection failed');
+      return apiError('Database connection failed', { status: 500 });
     }
 
     const collection = db.collection('admin');
-    
-    // Build the query based on key type
-    let query: any = {};
-    
-    if (typeof key === 'string') {
-      query['key.keys'] = key;
-      console.log('Searching for key.keys =', key);
-    } else if (typeof key === 'object' && key.keys) {
-      query['key.keys'] = key.keys;
-      console.log('Searching for key.keys =', key.keys);
-    }
-
-    console.log('Query:', query);
-    
-    const admin = await collection.findOne(query);
+    const admin = await collection.findOne({ 'key.keys': key });
 
     if (!admin) {
-      console.log('Admin not found with key:', key);
-      return NextResponse.json(
-        { success: false, message: 'Invalid key' },
-        { status: 404 }
-      );
+      return apiError('Invalid key', { status: 401 });
     }
-
-    console.log('Admin found:', admin._id);
 
     // Update last login time
     await collection.updateOne(
@@ -58,9 +37,16 @@ export async function POST(request: NextRequest) {
       { $set: { lastLoginAt: new Date() } }
     );
 
-    return NextResponse.json(
+    // Issue JWT token
+    const token = signToken({
+      userId: admin._id.toString(),
+      role: 'admin',
+      name: admin.name || 'Admin',
+      email: admin.email || '',
+    });
+
+    return apiSuccess(
       {
-        success: true,
         message: 'Login successful',
         admin: {
           id: admin._id.toString(),
@@ -69,14 +55,14 @@ export async function POST(request: NextRequest) {
           role: admin.role || 'admin',
           permissions: admin.permissions || [],
         },
+        token,
       },
-      { status: 200 }
+      {
+        headers: { 'Set-Cookie': createAuthCookie(token) },
+      }
     );
   } catch (error) {
     console.error('Admin login error:', error);
-    return NextResponse.json(
-      { success: false, message: 'An error occurred during login' },
-      { status: 500 }
-    );
+    return apiError('An error occurred during login', { status: 500 });
   }
 }

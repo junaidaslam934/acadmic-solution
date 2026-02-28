@@ -51,6 +51,10 @@ const TeacherSchema = new Schema<ITeacher>(
   }
 );
 
+// Index for email lookups
+TeacherSchema.index({ email: 1 });
+TeacherSchema.index({ isActive: 1 });
+
 const Teacher: Model<ITeacher> = mongoose.models.Teacher || mongoose.model<ITeacher>('Teacher', TeacherSchema);
 
 export default Teacher;

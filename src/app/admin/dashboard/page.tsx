@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, Suspense } from 'react';
 import { useSearchParams } from 'next/navigation';
 import AddTeacherForm from '@/components/admin/AddTeacherForm';
 import PDFUploadForm from '@/components/admin/PDFUploadForm';
@@ -8,147 +8,99 @@ import SemesterForm from '@/components/admin/SemesterForm';
 import TimetableForm from '@/components/admin/TimetableForm';
 import WeeksForm from '@/components/admin/WeeksForm';
 
+type DashboardTab = 'teachers' | 'pdf' | 'semesters' | 'timetable' | 'weeks';
+
+const DASHBOARD_TABS: { id: DashboardTab; label: string; icon: string; color: string }[] = [
+  { id: 'teachers', label: 'Add Teachers', icon: '👨‍🏫', color: 'blue' },
+  { id: 'pdf', label: 'Upload PDF', icon: '📄', color: 'emerald' },
+  { id: 'semesters', label: 'Semesters', icon: '📅', color: 'purple' },
+  { id: 'timetable', label: 'Timetable', icon: '🕐', color: 'indigo' },
+  { id: 'weeks', label: 'Weeks', icon: '📆', color: 'amber' },
+];
+
+const TAB_HEADER_STYLES: Record<string, string> = {
+  blue: 'from-blue-600 to-blue-700',
+  emerald: 'from-emerald-600 to-emerald-700',
+  purple: 'from-purple-600 to-purple-700',
+  indigo: 'from-indigo-600 to-indigo-700',
+  amber: 'from-amber-500 to-amber-600',
+};
+
 export default function AdminDashboard() {
+  return (
+    <Suspense fallback={
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="flex items-center justify-center py-24">
+          <div className="flex items-center gap-3 text-gray-500">
+            <svg className="animate-spin h-5 w-5" viewBox="0 0 24 24">
+              <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none" />
+              <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
+            </svg>
+            Loading dashboard...
+          </div>
+        </div>
+      </div>
+    }>
+      <AdminDashboardContent />
+    </Suspense>
+  );
+}
+
+function AdminDashboardContent() {
   const searchParams = useSearchParams();
-  const [activeTab, setActiveTab] = useState<'teachers' | 'pdf' | 'semesters' | 'timetable' | 'weeks'>('teachers');
+  const [activeTab, setActiveTab] = useState<DashboardTab>('teachers');
 
   useEffect(() => {
     const tab = searchParams.get('tab');
-    if (tab === 'pdf' || tab === 'semesters' || tab === 'timetable' || tab === 'weeks') {
-      setActiveTab(tab as 'pdf' | 'semesters' | 'timetable' | 'weeks');
+    if (tab && DASHBOARD_TABS.some((t) => t.id === tab)) {
+      setActiveTab(tab as DashboardTab);
     }
   }, [searchParams]);
 
+  const currentTab = DASHBOARD_TABS.find((t) => t.id === activeTab)!;
+
   return (
-    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
       {/* Tab Navigation */}
-      <div className="mb-6 flex gap-4 border-b border-gray-200 overflow-x-auto">
-        <button
-          onClick={() => setActiveTab('teachers')}
-          className={`px-6 py-3 font-medium transition-colors whitespace-nowrap ${
-            activeTab === 'teachers'
-              ? 'text-blue-600 border-b-2 border-blue-600'
-              : 'text-gray-600 hover:text-gray-900'
-          }`}
-        >
-          Add Teachers
-        </button>
-        <button
-          onClick={() => setActiveTab('pdf')}
-          className={`px-6 py-3 font-medium transition-colors whitespace-nowrap ${
-            activeTab === 'pdf'
-              ? 'text-blue-600 border-b-2 border-blue-600'
-              : 'text-gray-600 hover:text-gray-900'
-          }`}
-        >
-          Upload PDF
-        </button>
-        <button
-          onClick={() => setActiveTab('semesters')}
-          className={`px-6 py-3 font-medium transition-colors whitespace-nowrap ${
-            activeTab === 'semesters'
-              ? 'text-blue-600 border-b-2 border-blue-600'
-              : 'text-gray-600 hover:text-gray-900'
-          }`}
-        >
-          Manage Semesters
-        </button>
-        <button
-          onClick={() => setActiveTab('timetable')}
-          className={`px-6 py-3 font-medium transition-colors whitespace-nowrap ${
-            activeTab === 'timetable'
-              ? 'text-blue-600 border-b-2 border-blue-600'
-              : 'text-gray-600 hover:text-gray-900'
-          }`}
-        >
-          📅 Timetable
-        </button>
-        <button
-          onClick={() => setActiveTab('weeks')}
-          className={`px-6 py-3 font-medium transition-colors whitespace-nowrap ${
-            activeTab === 'weeks'
-              ? 'text-blue-600 border-b-2 border-blue-600'
-              : 'text-gray-600 hover:text-gray-900'
-          }`}
-        >
-          📆 Manage Weeks
-        </button>
+      <div className="mb-6 flex gap-2 overflow-x-auto pb-1">
+        {DASHBOARD_TABS.map((tab) => (
+          <button
+            key={tab.id}
+            onClick={() => setActiveTab(tab.id)}
+            className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-all duration-200 whitespace-nowrap ${
+              activeTab === tab.id
+                ? 'bg-white text-gray-900 shadow-sm border border-gray-200'
+                : 'text-gray-500 hover:text-gray-700 hover:bg-white/60'
+            }`}
+          >
+            <span>{tab.icon}</span>
+            {tab.label}
+          </button>
+        ))}
       </div>
 
-      {/* Teachers Tab */}
-      {activeTab === 'teachers' && (
-        <div className="bg-white rounded-lg shadow-md overflow-hidden">
-          <div className="border-b bg-blue-600 text-white px-6 py-4">
-            <h2 className="text-xl font-semibold">Add Teachers</h2>
-          </div>
-          
-          <div className="p-6">
-            <AddTeacherForm />
-          </div>
+      {/* Content Card */}
+      <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
+        <div className={`bg-gradient-to-r ${TAB_HEADER_STYLES[currentTab.color]} px-6 py-4`}>
+          <h2 className="text-lg font-semibold text-white flex items-center gap-2">
+            <span>{currentTab.icon}</span>
+            {currentTab.label}
+          </h2>
         </div>
-      )}
-
-      {/* PDF Upload Tab */}
-      {activeTab === 'pdf' && (
-        <div className="bg-white rounded-lg shadow-md overflow-hidden">
-          <div className="border-b bg-green-600 text-white px-6 py-4">
-            <h2 className="text-xl font-semibold">Upload PDF Documents</h2>
-            <p className="text-green-100 text-sm mt-1">Upload schedules, reports, or other documents</p>
-          </div>
-          
-          <div className="p-6">
-            <PDFUploadForm />
-          </div>
+        <div className="p-6">
+          {activeTab === 'teachers' && <AddTeacherForm />}
+          {activeTab === 'pdf' && <PDFUploadForm />}
+          {activeTab === 'semesters' && <SemesterForm />}
+          {activeTab === 'timetable' && <TimetableForm />}
+          {activeTab === 'weeks' && <WeeksFormWrapper />}
         </div>
-      )}
-
-      {/* Semesters Tab */}
-      {activeTab === 'semesters' && (
-        <div className="bg-white rounded-lg shadow-md overflow-hidden">
-          <div className="border-b bg-purple-600 text-white px-6 py-4">
-            <h2 className="text-xl font-semibold">Manage Semesters</h2>
-            <p className="text-purple-100 text-sm mt-1">Set semester start and end dates</p>
-          </div>
-          
-          <div className="p-6">
-            <SemesterForm />
-          </div>
-        </div>
-      )}
-
-      {/* Timetable Tab */}
-      {activeTab === 'timetable' && (
-        <div className="bg-white rounded-lg shadow-md overflow-hidden">
-          <div className="border-b bg-indigo-600 text-white px-6 py-4">
-            <h2 className="text-xl font-semibold">Create Timetable</h2>
-            <p className="text-indigo-100 text-sm mt-1">Schedule courses based on credit hours per week</p>
-          </div>
-          
-          <div className="p-6">
-            <TimetableForm />
-          </div>
-        </div>
-      )}
-
-      {/* Weeks Tab */}
-      {activeTab === 'weeks' && (
-        <div className="bg-white rounded-lg shadow-md overflow-hidden">
-          <div className="border-b bg-orange-600 text-white px-6 py-4">
-            <h2 className="text-xl font-semibold">Manage Semester Weeks</h2>
-            <p className="text-orange-100 text-sm mt-1">Define start and end dates for each week (max 15 weeks)</p>
-          </div>
-          
-          <div className="p-6">
-            <WeeksFormWrapper />
-          </div>
-        </div>
-      )}
+      </div>
     </div>
   );
 }
 
 function WeeksFormWrapper() {
-  const [semesters, setSemesters] = useState<any[]>([]);
+  const [semesters, setSemesters] = useState<Array<{ _id: string; name: string; startDate: string; endDate: string }>>([]);
   const [selectedSemester, setSelectedSemester] = useState<string>('');
   const [isLoading, setIsLoading] = useState(true);
 
@@ -175,13 +127,29 @@ function WeeksFormWrapper() {
   };
 
   if (isLoading) {
-    return <div className="text-center py-8">Loading semesters...</div>;
+    return (
+      <div className="flex items-center justify-center py-12">
+        <div className="flex items-center gap-3 text-gray-500">
+          <svg className="animate-spin h-5 w-5" viewBox="0 0 24 24">
+            <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none" />
+            <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
+          </svg>
+          Loading semesters...
+        </div>
+      </div>
+    );
   }
 
   if (semesters.length === 0) {
     return (
-      <div className="text-center py-8 text-gray-600">
-        No semesters found. Please create a semester first.
+      <div className="text-center py-12">
+        <div className="w-12 h-12 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-3">
+          <svg className="w-6 h-6 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
+          </svg>
+        </div>
+        <p className="text-gray-600 font-medium mb-1">No semesters found</p>
+        <p className="text-sm text-gray-400">Create a semester first in the Semesters tab.</p>
       </div>
     );
   }
@@ -189,13 +157,13 @@ function WeeksFormWrapper() {
   return (
     <>
       <div className="mb-6">
-        <label className="block text-sm font-medium text-gray-700 mb-2">
+        <label className="block text-sm font-medium text-gray-700 mb-1.5">
           Select Semester
         </label>
         <select
           value={selectedSemester}
           onChange={(e) => setSelectedSemester(e.target.value)}
-          className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+          className="w-full max-w-md px-4 py-2.5 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 bg-gray-50 text-sm"
         >
           {semesters.map((sem) => (
             <option key={sem._id} value={sem._id}>

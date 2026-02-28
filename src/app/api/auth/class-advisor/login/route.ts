@@ -1,68 +1,66 @@
-import { NextRequest, NextResponse } from 'next/server';
+import { NextRequest } from 'next/server';
 import mongoose from 'mongoose';
 import connectDB from '@/lib/mongodb';
 import ClassAdvisor from '@/models/ClassAdvisor';
+import { signToken, createAuthCookie } from '@/lib/auth';
+import { apiSuccess, apiError } from '@/lib/api-response';
+import { classAdvisorLoginSchema, validateBody } from '@/lib/validations';
 
 export async function POST(request: NextRequest) {
   try {
     await connectDB();
-    
-    const { advisorId } = await request.json();
-    
-    if (!advisorId) {
-      return NextResponse.json(
-        { success: false, message: 'Class Advisor ID is required' },
-        { status: 400 }
-      );
+
+    const body = await request.json();
+    const { data, error } = validateBody(classAdvisorLoginSchema, body);
+
+    if (error) {
+      return apiError(error, { status: 400 });
     }
-    
-    // Trim whitespace from the ID
-    const trimmedId = advisorId.trim();
-    
-    // Validate if it's a valid MongoDB ObjectId
+
+    const trimmedId = data!.advisorId;
+
     if (!mongoose.Types.ObjectId.isValid(trimmedId)) {
-      console.error('Invalid ID format:', trimmedId, 'Length:', trimmedId.length);
-      return NextResponse.json(
-        { success: false, message: `Invalid Class Advisor ID format. Please check the ID: ${trimmedId}` },
-        { status: 400 }
-      );
+      return apiError('Invalid Class Advisor ID format', { status: 400 });
     }
-    
-    // Find class advisor by ID
+
     const advisor = await ClassAdvisor.findById(trimmedId).populate('teacherId');
-    
+
     if (!advisor) {
-      return NextResponse.json(
-        { success: false, message: 'Class Advisor not found' },
-        { status: 404 }
-      );
+      return apiError('Class Advisor not found', { status: 404 });
     }
-    
+
     const teacher = advisor.teacherId as any;
-    
+
     if (!teacher) {
-      return NextResponse.json(
-        { success: false, message: 'Teacher information not found' },
-        { status: 404 }
-      );
+      return apiError('Teacher information not found', { status: 404 });
     }
-    
-    return NextResponse.json({
-      success: true,
-      message: 'Login successful',
-      advisor: {
-        id: advisor._id,
-        teacherId: teacher._id,
-        teacherName: teacher.name,
-        teacherEmail: teacher.email,
-        year: advisor.year,
-      },
+
+    // Issue JWT token
+    const token = signToken({
+      userId: advisor._id.toString(),
+      role: 'class-advisor',
+      name: teacher.name,
+      email: teacher.email,
     });
-  } catch (error: any) {
-    console.error('Class advisor login error:', error);
-    return NextResponse.json(
-      { success: false, message: 'Login failed', error: error.message },
-      { status: 500 }
+
+    return apiSuccess(
+      {
+        message: 'Login successful',
+        advisor: {
+          id: advisor._id,
+          teacherId: teacher._id,
+          teacherName: teacher.name,
+          teacherEmail: teacher.email,
+          year: advisor.year,
+        },
+        token,
+      },
+      {
+        headers: { 'Set-Cookie': createAuthCookie(token) },
+      }
     );
+  } catch (error) {
+    console.error('Class advisor login error:', error);
+    return apiError('An error occurred during login', { status: 500 });
   }
 }

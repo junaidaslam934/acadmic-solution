@@ -1,25 +1,37 @@
-import { NextRequest, NextResponse } from 'next/server';
+import { NextRequest } from 'next/server';
 import Teacher from '@/models/Teacher';
 import connectDB from '@/lib/mongodb';
+import { apiSuccess, apiError } from '@/lib/api-response';
+import { createTeacherSchema, validateBody } from '@/lib/validations';
 
 export async function GET(request: NextRequest) {
   try {
     await connectDB();
+
     const { searchParams } = new URL(request.url);
     const activeOnly = searchParams.get('activeOnly') === 'true';
-    
-    const filter = activeOnly ? { isActive: true } : {};
-    const teachers = await Teacher.find(filter).sort({ name: 1 });
-    
-    console.log(`Fetching teachers with filter:`, filter, `Found: ${teachers.length}`);
-    
-    return NextResponse.json({ success: true, teachers }, { status: 200 });
+    const page = Math.max(1, parseInt(searchParams.get('page') || '1'));
+    const limit = Math.min(100, Math.max(1, parseInt(searchParams.get('limit') || '50')));
+
+    const filter: Record<string, unknown> = {};
+    if (activeOnly) filter.isActive = true;
+
+    const [teachers, total] = await Promise.all([
+      Teacher.find(filter)
+        .sort({ name: 1 })
+        .skip((page - 1) * limit)
+        .limit(limit)
+        .lean(),
+      Teacher.countDocuments(filter),
+    ]);
+
+    return apiSuccess({
+      teachers,
+      pagination: { page, limit, total, pages: Math.ceil(total / limit) },
+    });
   } catch (error) {
     console.error('Error fetching teachers:', error);
-    return NextResponse.json(
-      { success: false, message: 'Error fetching teachers' },
-      { status: 500 }
-    );
+    return apiError('Error fetching teachers', { status: 500 });
   }
 }
 
@@ -27,42 +39,25 @@ export async function POST(request: NextRequest) {
   try {
     await connectDB();
     const body = await request.json();
+    const { data, error } = validateBody(createTeacherSchema, body);
 
-    const { name, email, employeeId, specialization } = body;
-
-    if (!name || !email || !employeeId) {
-      return NextResponse.json(
-        { success: false, message: 'Name, email, and employee ID are required' },
-        { status: 400 }
-      );
+    if (error) {
+      return apiError(error, { status: 400 });
     }
 
-    const teacher = new Teacher({
-      name,
-      email,
-      employeeId,
-      specialization: specialization || [],
-    });
+    const teacher = await Teacher.create(data!);
 
-    await teacher.save();
-
-    return NextResponse.json(
-      { success: true, message: 'Teacher added successfully', teacher },
+    return apiSuccess(
+      { message: 'Teacher added successfully', teacher },
       { status: 201 }
     );
   } catch (error: any) {
     console.error('Error adding teacher:', error);
     if (error.code === 11000) {
       const field = Object.keys(error.keyPattern)[0];
-      return NextResponse.json(
-        { success: false, message: `${field} already exists` },
-        { status: 400 }
-      );
+      return apiError(`${field} already exists`, { status: 400 });
     }
-    return NextResponse.json(
-      { success: false, message: 'Error adding teacher' },
-      { status: 500 }
-    );
+    return apiError('Error adding teacher', { status: 500 });
   }
 }
 
@@ -73,23 +68,18 @@ export async function DELETE(request: NextRequest) {
     const teacherId = searchParams.get('id');
 
     if (!teacherId) {
-      return NextResponse.json(
-        { success: false, message: 'Teacher ID is required' },
-        { status: 400 }
-      );
+      return apiError('Teacher ID is required', { status: 400 });
     }
 
-    await Teacher.findByIdAndDelete(teacherId);
+    const deleted = await Teacher.findByIdAndDelete(teacherId);
 
-    return NextResponse.json(
-      { success: true, message: 'Teacher deleted successfully' },
-      { status: 200 }
-    );
+    if (!deleted) {
+      return apiError('Teacher not found', { status: 404 });
+    }
+
+    return apiSuccess({ message: 'Teacher deleted successfully' });
   } catch (error) {
     console.error('Error deleting teacher:', error);
-    return NextResponse.json(
-      { success: false, message: 'Error deleting teacher' },
-      { status: 500 }
-    );
+    return apiError('Error deleting teacher', { status: 500 });
   }
 }

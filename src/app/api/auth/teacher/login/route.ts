@@ -1,58 +1,60 @@
-import { NextRequest, NextResponse } from 'next/server';
+import { NextRequest } from 'next/server';
 import mongoose from 'mongoose';
 import connectDB from '@/lib/mongodb';
 import Teacher from '@/models/Teacher';
+import { signToken, createAuthCookie } from '@/lib/auth';
+import { apiSuccess, apiError } from '@/lib/api-response';
+import { teacherLoginSchema, validateBody } from '@/lib/validations';
 
 export async function POST(request: NextRequest) {
   try {
     await connectDB();
-    
-    const { teacherId } = await request.json();
-    
-    if (!teacherId) {
-      return NextResponse.json(
-        { success: false, message: 'Teacher ID is required' },
-        { status: 400 }
-      );
+
+    const body = await request.json();
+    const { data, error } = validateBody(teacherLoginSchema, body);
+
+    if (error) {
+      return apiError(error, { status: 400 });
     }
-    
-    // Trim whitespace from the ID
-    const trimmedId = teacherId.trim();
-    
+
+    const trimmedId = data!.teacherId;
+
     // Validate if it's a valid MongoDB ObjectId
     if (!mongoose.Types.ObjectId.isValid(trimmedId)) {
-      return NextResponse.json(
-        { success: false, message: `Invalid Teacher ID format. Please check the ID: ${trimmedId}` },
-        { status: 400 }
-      );
+      return apiError('Invalid Teacher ID format', { status: 400 });
     }
-    
-    // Find teacher by ID
-    const teacher = await Teacher.findById(trimmedId);
-    
+
+    const teacher = await Teacher.findById(trimmedId).lean();
+
     if (!teacher) {
-      return NextResponse.json(
-        { success: false, message: 'Teacher not found' },
-        { status: 404 }
-      );
+      return apiError('Teacher not found', { status: 404 });
     }
-    
-    return NextResponse.json({
-      success: true,
-      message: 'Login successful',
-      teacher: {
-        id: teacher._id,
-        name: teacher.name,
-        email: teacher.email,
-        employeeId: teacher.employeeId,
-        department: teacher.department,
-      },
+
+    // Issue JWT token
+    const token = signToken({
+      userId: teacher._id.toString(),
+      role: 'staff',
+      name: teacher.name,
+      email: teacher.email,
     });
-  } catch (error: any) {
-    console.error('Teacher login error:', error);
-    return NextResponse.json(
-      { success: false, message: 'Login failed', error: error.message },
-      { status: 500 }
+
+    return apiSuccess(
+      {
+        message: 'Login successful',
+        teacher: {
+          id: teacher._id,
+          name: teacher.name,
+          email: teacher.email,
+          employeeId: teacher.employeeId,
+        },
+        token,
+      },
+      {
+        headers: { 'Set-Cookie': createAuthCookie(token) },
+      }
     );
+  } catch (error) {
+    console.error('Teacher login error:', error);
+    return apiError('An error occurred during login', { status: 500 });
   }
 }

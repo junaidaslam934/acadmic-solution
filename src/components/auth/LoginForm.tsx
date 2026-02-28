@@ -7,246 +7,213 @@ interface LoginFormProps {
   userRole: UserRole;
 }
 
+// Centralized config per role
+const ROLE_CONFIG: Record<UserRole, {
+  fieldLabel: string;
+  fieldName: string;
+  placeholder: string;
+  hint?: string;
+  apiUrl: string;
+  bodyKey: string;
+  responseKey: string;
+  redirect: string;
+  storageMap: (data: any) => Record<string, string>;
+  usePasswordField?: boolean;
+}> = {
+  student: {
+    fieldLabel: 'Student ID or Roll Number',
+    fieldName: 'email',
+    placeholder: 'Enter your Student ID or Roll Number',
+    hint: 'e.g., 6941cfd8f594c8e7c63aaf6b or CS-2023-001',
+    apiUrl: '/api/auth/student/login',
+    bodyKey: 'studentId',
+    responseKey: 'student',
+    redirect: '/student/courses',
+    storageMap: (d) => ({
+      studentId: d._id,
+      studentName: d.studentName,
+      rollNumber: d.rollNumber,
+      studentYear: String(d.year),
+      studentSection: d.section,
+    }),
+  },
+  staff: {
+    fieldLabel: 'Teacher ID',
+    fieldName: 'email',
+    placeholder: 'Enter your Teacher ID',
+    hint: 'e.g., 6941cfd8f594c8e7c63aaf6b',
+    apiUrl: '/api/auth/teacher/login',
+    bodyKey: 'teacherId',
+    responseKey: 'teacher',
+    redirect: '/teacher/dashboard',
+    storageMap: (d) => ({
+      teacherId: d.id,
+      teacherName: d.name,
+      teacherEmail: d.email,
+    }),
+  },
+  'class-advisor': {
+    fieldLabel: 'Class Advisor ID',
+    fieldName: 'email',
+    placeholder: 'Enter your Class Advisor ID',
+    hint: 'e.g., 6942e61578335fab453721ae',
+    apiUrl: '/api/auth/class-advisor/login',
+    bodyKey: 'advisorId',
+    responseKey: 'advisor',
+    redirect: '/class-advisor/dashboard',
+    storageMap: (d) => ({
+      classAdvisorId: d.id,
+      advisorYear: String(d.year),
+      advisorName: d.teacherName,
+    }),
+  },
+  coordinator: {
+    fieldLabel: 'Coordinator ID',
+    fieldName: 'email',
+    placeholder: 'Enter your Coordinator ID',
+    hint: 'e.g., 6941cfd8f594c8e7c63aaf6b',
+    apiUrl: '/api/auth/coordinator/login',
+    bodyKey: 'coordinatorId',
+    responseKey: 'coordinator',
+    redirect: '/coordinator/dashboard',
+    storageMap: (d) => ({
+      coordinatorId: d.id,
+      coordinatorName: d.name,
+      coordinatorEmail: d.email,
+    }),
+  },
+  admin: {
+    fieldLabel: 'Admin Key',
+    fieldName: 'password',
+    placeholder: 'Enter your admin key',
+    apiUrl: '/api/auth/admin/login',
+    bodyKey: 'key',
+    responseKey: 'admin',
+    redirect: '/admin/dashboard',
+    usePasswordField: true,
+    storageMap: (d) => ({
+      adminId: d.id,
+      adminName: d.name,
+      adminEmail: d.email,
+      adminRole: d.role,
+    }),
+  },
+};
+
 export default function LoginForm({ userRole }: LoginFormProps) {
-  const [formData, setFormData] = useState({
-    email: '',
-    password: '',
-    rememberMe: false
-  });
+  const [inputValue, setInputValue] = useState('');
   const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState('');
+
+  const config = ROLE_CONFIG[userRole];
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
-    
-    if (userRole === 'student') {
-      // Student login with ID only
-      try {
-        const response = await fetch('/api/auth/student/login', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ studentId: formData.email }),
-        });
+    setError('');
 
-        const data = await response.json();
+    try {
+      const response = await fetch(config.apiUrl, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ [config.bodyKey]: inputValue }),
+      });
 
-        if (data.success) {
-          localStorage.setItem('studentId', data.student._id);
-          localStorage.setItem('studentName', data.student.studentName);
-          localStorage.setItem('rollNumber', data.student.rollNumber);
-          localStorage.setItem('studentYear', data.student.year);
-          localStorage.setItem('studentSection', data.student.section);
-          window.location.href = '/student/courses';
-        } else {
-          alert(data.message || 'Login failed');
-          setIsLoading(false);
+      const data = await response.json();
+
+      if (data.success) {
+        // Store role data in localStorage for client-side display
+        const storageEntries = config.storageMap(data[config.responseKey]);
+        Object.entries(storageEntries).forEach(([k, v]) => localStorage.setItem(k, v));
+        // Store the token for client-side API calls
+        if (data.token) {
+          localStorage.setItem('authToken', data.token);
         }
-      } catch (error) {
-        alert('An error occurred. Please try again.');
+        window.location.href = config.redirect;
+      } else {
+        setError(data.message || 'Login failed. Please check your credentials.');
         setIsLoading(false);
       }
-    } else if (userRole === 'class-advisor') {
-      // Class Advisor login with ID only
-      try {
-        const response = await fetch('/api/auth/class-advisor/login', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ advisorId: formData.email }),
-        });
-
-        const data = await response.json();
-
-        if (data.success) {
-          localStorage.setItem('classAdvisorId', data.advisor.id);
-          localStorage.setItem('advisorYear', data.advisor.year.toString());
-          localStorage.setItem('advisorName', data.advisor.teacherName);
-          window.location.href = '/class-advisor/dashboard';
-        } else {
-          alert(data.message || 'Login failed');
-          setIsLoading(false);
-        }
-      } catch (error) {
-        alert('An error occurred. Please try again.');
-        setIsLoading(false);
-      }
-    } else if (userRole === 'coordinator') {
-      // Coordinator login - direct access without API
-      localStorage.setItem('coordinatorId', 'coordinator-001');
-      localStorage.setItem('coordinatorName', 'Coordinator');
-      localStorage.setItem('coordinatorEmail', 'coordinator@university.edu');
-      window.location.href = '/coordinator/dashboard';
-    } else if (userRole === 'staff') {
-      // Teacher/Staff login with ID only
-      try {
-        const response = await fetch('/api/auth/teacher/login', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ teacherId: formData.email }),
-        });
-
-        const data = await response.json();
-
-        if (data.success) {
-          localStorage.setItem('teacherId', data.teacher.id);
-          localStorage.setItem('teacherName', data.teacher.name);
-          localStorage.setItem('teacherEmail', data.teacher.email);
-          window.location.href = '/teacher/dashboard';
-        } else {
-          alert(data.message || 'Login failed');
-          setIsLoading(false);
-        }
-      } catch (error) {
-        alert('An error occurred. Please try again.');
-        setIsLoading(false);
-      }
-    } else if (userRole === 'admin') {
-      // Admin login with key only
-      try {
-        const response = await fetch('/api/auth/admin/login', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ key: formData.password }),
-        });
-
-        const data = await response.json();
-
-        if (data.success) {
-          localStorage.setItem('adminId', data.admin.id);
-          localStorage.setItem('adminName', data.admin.name);
-          localStorage.setItem('adminEmail', data.admin.email);
-          localStorage.setItem('adminRole', data.admin.role);
-          window.location.href = '/admin/dashboard';
-        } else {
-          alert(data.message || 'Login failed');
-          setIsLoading(false);
-        }
-      } catch (error) {
-        alert('An error occurred. Please try again.');
-        setIsLoading(false);
-      }
+    } catch {
+      setError('Network error. Please check your connection and try again.');
+      setIsLoading(false);
     }
   };
 
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const { name, value, type, checked } = e.target;
-    setFormData(prev => ({
-      ...prev,
-      [name]: type === 'checkbox' ? checked : value
-    }));
-  };
-
-  const getRoleSpecificPlaceholder = () => {
-    switch (userRole) {
-      case 'student':
-        return 'Enter your Student ID';
-      case 'staff':
-        return 'Enter your Teacher ID';
-      case 'class-advisor':
-        return 'Enter your Class Advisor ID';
-      case 'coordinator':
-        return 'Enter your Coordinator ID';
-      case 'admin':
-        return 'Enter your Admin ID';
-      default:
-        return 'email@university.edu';
-    }
-  };
-
-  const getFieldLabel = () => {
-    if (userRole === 'student') return 'Student ID';
-    if (userRole === 'class-advisor') return 'Class Advisor ID';
-    if (userRole === 'staff') return 'Teacher ID';
-    if (userRole === 'coordinator') return 'Coordinator ID';
-    if (userRole === 'admin') return 'Admin ID';
-    return 'Email Address';
-  };
-
-  const getFieldType = () => {
-    return (userRole === 'class-advisor' || userRole === 'staff' || userRole === 'coordinator' || userRole === 'student' || userRole === 'admin') ? 'text' : 'email';
-  };
+  const roleLabel = userRole === 'class-advisor'
+    ? 'Class Advisor'
+    : userRole.charAt(0).toUpperCase() + userRole.slice(1);
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-6">
-      {/* Role Indicator */}
+    <form onSubmit={handleSubmit} className="space-y-5">
+      {/* Role Badge */}
       <div className="text-center">
-        <div className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-blue-100 text-blue-800">
-          Signing in as {userRole === 'class-advisor' ? 'Class Advisor' : userRole.charAt(0).toUpperCase() + userRole.slice(1)}
-        </div>
+        <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-blue-50 text-blue-700 border border-blue-100">
+          Signing in as {roleLabel}
+        </span>
       </div>
 
-      {/* ID/Email Field - Hidden for admin */}
-      {userRole !== 'admin' && (
+      {/* Error message */}
+      {error && (
+        <div className="flex items-start gap-2 p-3 bg-red-50 border border-red-100 rounded-lg">
+          <svg className="w-4 h-4 text-red-500 mt-0.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+          </svg>
+          <p className="text-sm text-red-700">{error}</p>
+        </div>
+      )}
+
+      {/* Input Field */}
       <div>
-        <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-2">
-          {getFieldLabel()}
+        <label htmlFor="loginInput" className="block text-sm font-medium text-gray-700 mb-1.5">
+          {config.fieldLabel}
         </label>
         <input
-          id="email"
-          name="email"
-          type={getFieldType()}
+          id="loginInput"
+          type={config.usePasswordField ? 'password' : 'text'}
           required
-          value={formData.email}
-          onChange={handleInputChange}
-          placeholder={getRoleSpecificPlaceholder()}
-          className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors duration-200"
+          value={inputValue}
+          onChange={(e) => { setInputValue(e.target.value); setError(''); }}
+          placeholder={config.placeholder}
+          className="w-full px-4 py-2.5 border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 text-sm bg-gray-50 focus:bg-white"
+          autoComplete={config.usePasswordField ? 'current-password' : 'off'}
         />
-        {(userRole === 'class-advisor' || userRole === 'staff' || userRole === 'coordinator' || userRole === 'student') && (
-          <p className="mt-2 text-xs text-gray-500">
-            {`Example: ${userRole === 'class-advisor' ? '6942e61578335fab453721ae' : userRole === 'coordinator' ? '67xxxxxxxxxxxxxxxxxx' : userRole === 'student' ? '6941cfd8f594c8e7c63aaf6b' : '6941cfd8f594c8e7c63aaf6b'}`}
-          </p>
+        {config.hint && (
+          <p className="mt-1.5 text-xs text-gray-400">{config.hint}</p>
         )}
       </div>
-      )}
-
-      {/* Key/Password Field - For admin only */}
-      {userRole === 'admin' && (
-        <div>
-          <label htmlFor="password" className="block text-sm font-medium text-gray-700 mb-2">
-            Key
-          </label>
-          <input
-            id="password"
-            name="password"
-            type="password"
-            required
-            value={formData.password}
-            onChange={handleInputChange}
-            placeholder="Enter your key"
-            className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors duration-200"
-          />
-          <p className="mt-2 text-xs text-gray-500">Example: 12345678</p>
-        </div>
-      )}
 
       {/* Submit Button */}
       <button
         type="submit"
-        disabled={isLoading}
-        className={`w-full py-3 px-4 rounded-lg font-medium text-white transition-colors duration-200 ${
-          isLoading
-            ? 'bg-gray-400 cursor-not-allowed'
-            : 'bg-blue-600 hover:bg-blue-700'
+        disabled={isLoading || !inputValue.trim()}
+        className={`w-full py-2.5 px-4 rounded-lg font-medium text-white text-sm transition-all duration-200 ${
+          isLoading || !inputValue.trim()
+            ? 'bg-gray-300 cursor-not-allowed'
+            : 'bg-blue-600 hover:bg-blue-700 shadow-sm hover:shadow-md'
         }`}
       >
         {isLoading ? (
-          <div className="flex items-center justify-center">
-            <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white mr-2"></div>
+          <span className="flex items-center justify-center gap-2">
+            <svg className="animate-spin h-4 w-4" viewBox="0 0 24 24">
+              <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none" />
+              <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
+            </svg>
             Signing in...
-          </div>
+          </span>
         ) : (
-          `Sign in as ${userRole === 'class-advisor' ? 'Class Advisor' : userRole.charAt(0).toUpperCase() + userRole.slice(1)}`
+          `Sign in as ${roleLabel}`
         )}
       </button>
 
-      {/* Additional Links */}
-      <div className="text-center">
-        <p className="text-sm text-gray-600">
-          Don't have an account?{' '}
-          <a href="#" className="text-blue-600 hover:text-blue-500 font-medium">
-            Contact administrator
+      {/* Forgot password */}
+      {userRole === 'admin' && (
+        <div className="text-center">
+          <a href="/forgot-password" className="text-xs text-blue-600 hover:text-blue-500 font-medium">
+            Forgot your key?
           </a>
-        </p>
-      </div>
+        </div>
+      )}
     </form>
   );
 }

@@ -1,53 +1,56 @@
-import { NextRequest, NextResponse } from 'next/server';
+import { NextRequest } from 'next/server';
 import connectDB from '@/lib/mongodb';
 import Coordinator from '@/models/Coordinator';
 import { isValidObjectId } from 'mongoose';
+import { signToken, createAuthCookie } from '@/lib/auth';
+import { apiSuccess, apiError } from '@/lib/api-response';
 
 export async function POST(request: NextRequest) {
   try {
-    const { identifier } = await request.json();
+    const body = await request.json();
+    const identifier = body.identifier || body.coordinatorId;
 
     if (!identifier) {
-      return NextResponse.json(
-        { success: false, error: 'Coordinator ID is required' },
-        { status: 400 }
-      );
+      return apiError('Coordinator ID is required', { status: 400 });
     }
 
-    // Validate ObjectId format
     if (!isValidObjectId(identifier)) {
-      return NextResponse.json(
-        { success: false, error: 'Invalid Coordinator ID format' },
-        { status: 400 }
-      );
+      return apiError('Invalid Coordinator ID format', { status: 400 });
     }
 
     await connectDB();
 
-    // Find coordinator by ID
-    const coordinator = await Coordinator.findById(identifier);
+    const coordinator = await Coordinator.findById(identifier).lean();
 
     if (!coordinator) {
-      return NextResponse.json(
-        { success: false, error: 'Coordinator not found' },
-        { status: 404 }
-      );
+      return apiError('Coordinator not found', { status: 404 });
     }
 
-    return NextResponse.json({
-      success: true,
-      coordinator: {
-        id: coordinator._id.toString(),
-        name: coordinator.name,
-        email: coordinator.email,
-        department: coordinator.department
-      }
+    // Issue JWT token
+    const token = signToken({
+      userId: coordinator._id.toString(),
+      role: 'coordinator',
+      name: coordinator.name,
+      email: coordinator.email,
     });
+
+    return apiSuccess(
+      {
+        message: 'Login successful',
+        coordinator: {
+          id: coordinator._id.toString(),
+          name: coordinator.name,
+          email: coordinator.email,
+          department: coordinator.department,
+        },
+        token,
+      },
+      {
+        headers: { 'Set-Cookie': createAuthCookie(token) },
+      }
+    );
   } catch (error) {
     console.error('Coordinator login error:', error);
-    return NextResponse.json(
-      { success: false, error: 'Login failed' },
-      { status: 500 }
-    );
+    return apiError('An error occurred during login', { status: 500 });
   }
 }

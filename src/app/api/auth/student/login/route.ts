@@ -1,47 +1,50 @@
-import { NextRequest, NextResponse } from 'next/server';
+import { NextRequest } from 'next/server';
+import mongoose from 'mongoose';
 import connectDB from '@/lib/mongodb';
 import Student from '@/models/Student';
+import { signToken, createAuthCookie } from '@/lib/auth';
+import { apiSuccess, apiError } from '@/lib/api-response';
+import { studentLoginSchema, validateBody } from '@/lib/validations';
 
 export async function POST(request: NextRequest) {
   try {
     await connectDB();
-    
+
     const body = await request.json();
-    const { studentId } = body;
+    const { data, error } = validateBody(studentLoginSchema, body);
 
-    if (!studentId) {
-      return NextResponse.json(
-        { success: false, message: 'Student ID is required' },
-        { status: 400 }
-      );
+    if (error) {
+      return apiError(error, { status: 400 });
     }
 
-    // Try to find student by ID (MongoDB ObjectId)
-    let student = await Student.findById(studentId);
+    const { studentId } = data!;
 
-    // If not found by ID, try by roll number
+    // Try to find student by ID (MongoDB ObjectId) or roll number
+    let student = mongoose.Types.ObjectId.isValid(studentId)
+      ? await Student.findById(studentId).lean()
+      : null;
+
     if (!student) {
-      student = await Student.findOne({ rollNumber: studentId });
+      student = await Student.findOne({ rollNumber: studentId }).lean();
     }
 
     if (!student) {
-      return NextResponse.json(
-        { success: false, message: 'Student not found' },
-        { status: 404 }
-      );
+      return apiError('Student not found', { status: 404 });
     }
 
     if (!student.isActive) {
-      return NextResponse.json(
-        { success: false, message: 'Student account is inactive' },
-        { status: 403 }
-      );
+      return apiError('Student account is inactive', { status: 403 });
     }
 
-    // Return student data
-    return NextResponse.json(
+    // Issue JWT token
+    const token = signToken({
+      userId: student._id.toString(),
+      role: 'student',
+      name: student.studentName,
+    });
+
+    return apiSuccess(
       {
-        success: true,
         message: 'Login successful',
         student: {
           _id: student._id,
@@ -51,14 +54,14 @@ export async function POST(request: NextRequest) {
           section: student.section,
           coursesEnrolled: student.coursesEnrolled || [],
         },
+        token,
       },
-      { status: 200 }
+      {
+        headers: { 'Set-Cookie': createAuthCookie(token) },
+      }
     );
-  } catch (error: any) {
-    console.error('Error during student login:', error);
-    return NextResponse.json(
-      { success: false, message: 'Error during login' },
-      { status: 500 }
-    );
+  } catch (error) {
+    console.error('Student login error:', error);
+    return apiError('An error occurred during login', { status: 500 });
   }
 }

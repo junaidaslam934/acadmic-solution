@@ -50,6 +50,10 @@ const StudentSchema = new Schema<IStudent>(
   }
 );
 
+// Compound index for year+section queries (used in attendance and class lists)
+StudentSchema.index({ year: 1, section: 1 });
+StudentSchema.index({ isActive: 1 });
+
 const Student: Model<IStudent> = mongoose.models.Student || mongoose.model<IStudent>('Student', StudentSchema);
 
 export default Student;

@@ -79,19 +79,19 @@ export async function GET(request: NextRequest) {
 
     // Create holiday date map for quick lookup
     const holidayMap = new Map<string, string>();
-    holidays.forEach((h) => {
+    holidays.forEach((h: any) => {
       const dateStr = h.date.toISOString().split('T')[0];
       holidayMap.set(dateStr, h.reason);
     });
 
     // Create makeup class map for quick lookup
-    const makeupMap = new Map<string, any>();
-    makeupClasses.forEach((m) => {
+    const makeupMap = new Map<string, any[]>();
+    makeupClasses.forEach((m: any) => {
       const dateStr = m.date.toISOString().split('T')[0];
       if (!makeupMap.has(dateStr)) {
         makeupMap.set(dateStr, []);
       }
-      makeupMap.get(dateStr).push(m);
+      makeupMap.get(dateStr)!.push(m);
     });
 
     // Build calendar with weeks
@@ -120,11 +120,11 @@ export async function GET(request: NextRequest) {
         const makeupForDate = makeupMap.get(dateStr) || [];
 
         // Get regular timetable for this day of week
-        const regularClasses = weeklyTimetable.filter((t) => t.dayOfWeek === dayOfWeek);
+        const regularClasses = weeklyTimetable.filter((t: any) => t.dayOfWeek === dayOfWeek);
 
         // Combine makeup and regular classes
         const allClasses = [
-          ...makeupForDate.map((m) => ({
+          ...makeupForDate.map((m: any) => ({
             type: 'makeup',
             courseId: m.courseId,
             teacherId: m.teacherId,
@@ -134,7 +134,7 @@ export async function GET(request: NextRequest) {
             creditHours: m.creditHours,
             reason: m.reason,
           })),
-          ...regularClasses.map((r) => ({
+          ...regularClasses.map((r: any) => ({
             type: 'regular',
             courseId: r.courseId,
             teacherId: r.teacherId,
