@@ -1,0 +1,204 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Contact - Portfolio</title>
+</head>
+<body>
+    <header>
+        <h1>PORTFOLIO</h1>
+        <nav>
+            <ul>
+                <li><a href="index.html">Home</a></li>
+                <li><a href="about.html">About</a></li>
+                <li><a href="services.html">Services</a></li>
+                <li><a href="contact.html">Contact</a></li>
+            </ul>
+        </nav>
+    </header>
+
+    <main>
+        <section id="contact-hero">
+            <h1>Contact Us</h1>
+            <p><strong>Let's create something amazing together.</strong></p>
+        </section>
+
+        <hr>
+
+        <section id="contact-info">
+            <h2>Get in Touch</h2>
+            
+            <article>
+                <h3>Email</h3>
+                <p><a href="mailto:hello@portfolio.com">hello@portfolio.com</a></p>
+                <p><a href="mailto:info@portfolio.com">info@portfolio.com</a></p>
+            </article>
+
+            <article>
+                <h3>Phone</h3>
+                <p><a href="tel:+15551234567">+1 (555) 123-4567</a></p>
+                <p><a href="tel:+15559876543">+1 (555) 987-6543</a></p>
+            </article>
+
+            <article>
+                <h3>Address</h3>
+                <address>
+                    Portfolio Creative Studio<br>
+                    123 Creative Street<br>
+                    Design City, DC 12345<br>
+                    United States
+                </address>
+            </article>
+
+            <article>
+                <h3>Office Hours</h3>
+                <p>Monday - Friday: 9:00 AM - 6:00 PM</p>
+                <p>Saturday: 10:00 AM - 4:00 PM</p>
+                <p>Sunday: Closed</p>
+            </article>
+        </section>
+
+        <hr>
+
+        <section id="contact-form">
+            <h2>Send Us a Message</h2>
+            <form action="submit.php" method="post">
+                <fieldset>
+                    <legend>Contact Information</legend>
+                    
+                    <p>
+                        <label for="name">Name: <abbr title="required">*</abbr></label><br>
+                        <input type="text" id="name" name="name" required size="50">
+                    </p>
+
+                    <p>
+                        <label for="email">Email: <abbr title="required">*</abbr></label><br>
+                        <input type="email" id="email" name="email" required size="50">
+                    </p>
+
+                    <p>
+                        <label for="phone">Phone:</label><br>
+                        <input type="tel" id="phone" name="phone" size="50">
+                    </p>
+
+                    <p>
+                        <label for="company">Company:</label><br>
+                        <input type="text" id="company" name="company" size="50">
+                    </p>
+                </fieldset>
+
+                <fieldset>
+                    <legend>Project Details</legend>
+
+                    <p>
+                        <label for="subject">Subject: <abbr title="required">*</abbr></label><br>
+                        <input type="text" id="subject" name="subject" required size="50">
+                    </p>
+
+                    <p>
+                        <label for="service">Service Interested In:</label><br>
+                        <select id="service" name="service">
+                            <option value="">-- Select a Service --</option>
+                            <option value="web-design">Web Design</option>
+                            <option value="branding">Branding</option>
+                            <option value="development">Development</option>
+                            <option value="photography">Photography</option>
+                            <option value="video">Video Production</option>
+                            <option value="consulting">Consulting</option>
+                            <option value="other">Other</option>
+                        </select>
+                    </p>
+
+                    <p>
+                        <label for="budget">Budget Range:</label><br>
+                        <select id="budget" name="budget">
+                            <option value="">-- Select Budget --</option>
+                            <option value="under-5k">Under $5,000</option>
+                            <option value="5k-10k">$5,000 - $10,000</option>
+                            <option value="10k-25k">$10,000 - $25,000</option>
+                            <option value="25k-50k">$25,000 - $50,000</option>
+                            <option value="over-50k">Over $50,000</option>
+                        </select>
+                    </p>
+
+                    <p>
+                        <label for="timeline">Project Timeline:</label><br>
+                        <select id="timeline" name="timeline">
+                            <option value="">-- Select Timeline --</option>
+                            <option value="urgent">Urgent (1-2 weeks)</option>
+                            <option value="soon">Soon (1 month)</option>
+                            <option value="flexible">Flexible (2-3 months)</option>
+                            <option value="planning">Just Planning</option>
+                        </select>
+                    </p>
+
+                    <p>
+                        <label for="message">Message: <abbr title="required">*</abbr></label><br>
+                        <textarea id="message" name="message" required rows="8" cols="50"></textarea>
+                    </p>
+                </fieldset>
+
+                <fieldset>
+                    <legend>How Did You Hear About Us?</legend>
+                    <p>
+                        <input type="radio" id="search" name="source" value="search">
+                        <label for="search">Search Engine</label><br>
+                        
+                        <input type="radio" id="social" name="source" value="social">
+                        <label for="social">Social Media</label><br>
+                        
+                        <input type="radio" id="referral" name="source" value="referral">
+                        <label for="referral">Referral</label><br>
+                        
+                        <input type="radio" id="other-source" name="source" value="other">
+                        <label for="other-source">Other</label>
+                    </p>
+                </fieldset>
+
+                <p>
+                    <input type="checkbox" id="newsletter" name="newsletter" value="yes">
+                    <label for="newsletter">Subscribe to our newsletter</label>
+                </p>
+
+                <p>
+                    <button type="submit">Send Message</button>
+                    <button type="reset">Clear Form</button>
+                </p>
+            </form>
+        </section>
+
+        <hr>
+
+        <section id="social">
+            <h2>Follow Us</h2>
+            <ul>
+                <li><a href="https://twitter.com/portfolio">Twitter</a></li>
+                <li><a href="https://linkedin.com/company/portfolio">LinkedIn</a></li>
+                <li><a href="https://instagram.com/portfolio">Instagram</a></li>
+                <li><a href="https://facebook.com/portfolio">Facebook</a></li>
+                <li><a href="https://dribbble.com/portfolio">Dribbble</a></li>
+                <li><a href="https://behance.net/portfolio">Behance</a></li>
+            </ul>
+        </section>
+
+        <hr>
+
+        <section id="map">
+            <h2>Visit Our Office</h2>
+            <p>We'd love to meet you in person! Our office is located in the heart of Design City.</p>
+            <p><strong>Directions:</strong></p>
+            <ul>
+                <li>By Car: Free parking available on Creative Street</li>
+                <li>By Metro: Design Station (Red Line) - 5 minute walk</li>
+                <li>By Bus: Routes 12, 34, 56 stop nearby</li>
+            </ul>
+        </section>
+    </main>
+
+    <footer>
+        <p>&copy; 2024 Portfolio Creative Studio. All rights reserved.</p>
+        <p>Email: hello@portfolio.com | Phone: +1 (555) 123-4567</p>
+    </footer>
+</body>
+</html>
