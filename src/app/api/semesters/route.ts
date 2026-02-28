@@ -48,7 +48,7 @@ export async function POST(request: NextRequest) {
       type,
       startDate: start,
       endDate: end,
-      status: 'active',
+      status: 'planning',
       sections: sections || { 1: ['A', 'B'], 2: ['A', 'B'], 3: ['A', 'B'], 4: ['A', 'B'] },
       timeSlots: timeSlots || undefined,
       workingDays: workingDays || undefined,

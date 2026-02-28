@@ -235,7 +235,7 @@ export default function SemestersPage() {
                           Advance to {STATUS_LABELS[STATUS_ORDER[statusIdx + 1]]?.label}
                         </button>
                       )}
-                      {(sem.status === 'planning' || sem.status === 'active') && (
+                      {sem.status === 'planning' && (
                         <button onClick={() => handleDelete(sem)} className="px-3 py-1.5 text-xs font-medium text-red-700 border border-red-300 rounded-md hover:bg-red-50 transition">Delete</button>
                       )}
                     </div>
