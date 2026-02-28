@@ -15,6 +15,7 @@ export interface ICourseAssignment extends Document {
   teacherId: mongoose.Types.ObjectId;
   courseId: mongoose.Types.ObjectId;
   year: 1 | 2 | 3 | 4;
+  semester: 1 | 2;
   sections: string[];                   // e.g., ['A', 'B']
   creditHoursAssigned: number;          // For shared courses, may be less than total
   isShared: boolean;                    // Whether this course is shared with another teacher
@@ -30,7 +31,6 @@ const CourseAssignmentSchema = new Schema<ICourseAssignment>(
     semesterId: {
       type: Schema.Types.ObjectId,
       ref: 'Semester',
-      required: [true, 'Semester is required'],
     },
     teacherId: {
       type: Schema.Types.ObjectId,
@@ -47,13 +47,16 @@ const CourseAssignmentSchema = new Schema<ICourseAssignment>(
       required: [true, 'Year is required'],
       enum: [1, 2, 3, 4],
     },
+    semester: {
+      type: Number,
+      enum: [1, 2],
+    },
     sections: {
       type: [String],
       default: ['A', 'B'],
     },
     creditHoursAssigned: {
       type: Number,
-      required: [true, 'Credit hours assigned is required'],
       min: 1,
       max: 6,
     },

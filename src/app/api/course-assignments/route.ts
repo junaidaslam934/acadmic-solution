@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
+import mongoose from 'mongoose';
 import connectDB from '@/lib/mongodb';
 import CourseAssignment from '@/models/CourseAssignment';
 import Teacher from '@/models/Teacher';
@@ -26,6 +27,39 @@ export async function GET(request: NextRequest) {
       .populate('semesterId', 'name status academicYear')
       .sort({ year: 1, semester: 1 })
       .lean();
+
+    // Enrich assignments whose courseId didn't populate (course lives in allcourses collection)
+    const db = mongoose.connection.db;
+    if (db) {
+      const unpopulated = assignments.filter(
+        (a: Record<string, unknown>) =>
+          a.courseId && (typeof a.courseId === 'string' || (a.courseId && typeof a.courseId === 'object' && !('courseCode' in (a.courseId as Record<string, unknown>))))
+      );
+      if (unpopulated.length > 0) {
+        const ids = unpopulated.map((a: Record<string, unknown>) => {
+          const id = typeof a.courseId === 'string' ? a.courseId : String((a.courseId as Record<string, unknown>)._id || a.courseId);
+          try { return new mongoose.Types.ObjectId(id); } catch { return null; }
+        }).filter(Boolean);
+        if (ids.length > 0) {
+          const rawCourses = await db.collection('allcourses').find({ _id: { $in: ids } }).toArray();
+          const courseMap = new Map(rawCourses.map(c => [String(c._id), c]));
+          for (const a of unpopulated) {
+            const id = typeof a.courseId === 'string' ? a.courseId : String((a.courseId as Record<string, unknown>)._id || a.courseId);
+            const raw = courseMap.get(id);
+            if (raw) {
+              (a as Record<string, unknown>).courseId = {
+                _id: raw._id,
+                courseCode: raw.courseCode,
+                courseName: raw.courseName,
+                credits: raw.credits,
+                abbreviation: raw.abbreviation,
+                type: raw.type,
+              };
+            }
+          }
+        }
+      }
+    }
 
     return NextResponse.json({ success: true, data: assignments, assignments });
   } catch (error: unknown) {
@@ -56,7 +90,23 @@ export async function POST(request: NextRequest) {
 
     const course = await Course.findById(courseId);
     if (!course) {
-      return NextResponse.json({ success: false, error: 'Course not found' }, { status: 404 });
+      // Fallback: check the raw 'allcourses' collection (where courses are actually stored)
+      const db = mongoose.connection.db;
+      if (db) {
+        let rawCourse = null;
+        try {
+          rawCourse = await db.collection('allcourses').findOne({
+            _id: new mongoose.Types.ObjectId(courseId),
+          });
+        } catch {
+          // courseId may not be a valid ObjectId
+        }
+        if (!rawCourse) {
+          return NextResponse.json({ success: false, error: 'Course not found' }, { status: 404 });
+        }
+      } else {
+        return NextResponse.json({ success: false, error: 'Course not found' }, { status: 404 });
+      }
     }
 
     const assignmentData: Record<string, unknown> = {
@@ -81,6 +131,28 @@ export async function POST(request: NextRequest) {
       .populate('teacherId', 'name email employeeId')
       .populate('courseId', 'courseCode courseName credits')
       .lean();
+
+    // If courseId wasn't populated (course is in allcourses, not courses), enrich manually
+    if (populated && populated.courseId && typeof populated.courseId === 'string' || (populated?.courseId && !('courseCode' in (populated.courseId as Record<string, unknown>)))) {
+      const db = mongoose.connection.db;
+      if (db) {
+        try {
+          const rawCourse = await db.collection('allcourses').findOne({
+            _id: new mongoose.Types.ObjectId(String(assignment.courseId)),
+          });
+          if (rawCourse) {
+            (populated as Record<string, unknown>).courseId = {
+              _id: rawCourse._id,
+              courseCode: rawCourse.courseCode,
+              courseName: rawCourse.courseName,
+              credits: rawCourse.credits,
+            };
+          }
+        } catch {
+          // ignore enrichment errors
+        }
+      }
+    }
 
     return NextResponse.json({ success: true, data: populated, assignment: populated }, { status: 201 });
   } catch (error: unknown) {
