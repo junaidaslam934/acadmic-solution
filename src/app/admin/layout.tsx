@@ -1,6 +1,31 @@
+'use client';
+
 import { ReactNode } from 'react';
+import Link from 'next/link';
+import { usePathname, useSearchParams } from 'next/navigation';
+
+const navItems = [
+  { href: '/admin/dashboard', label: 'Dashboard', tab: null },
+  { href: '/admin/teachers', label: 'Teachers', tab: null },
+  { href: '/admin/students', label: 'Students', tab: null },
+  { href: '/admin/courses', label: 'Course Assignments', tab: null },
+  { href: '/admin/class-advisors', label: 'Class Advisors', tab: null },
+  { href: '/admin/dashboard?tab=pdf', label: '📄 PDF Upload', tab: 'pdf' },
+];
 
 export default function AdminLayout({ children }: { children: ReactNode }) {
+  const pathname = usePathname();
+  const searchParams = useSearchParams();
+  const currentTab = searchParams.get('tab');
+
+  const isActive = (item: { href: string; tab: string | null }) => {
+    const itemPath = item.href.split('?')[0];
+    if (item.tab) {
+      return pathname === itemPath && currentTab === item.tab;
+    }
+    return pathname === itemPath && !currentTab;
+  };
+
   return (
     <div className="min-h-screen bg-gray-50">
       {/* Admin Header */}
@@ -21,42 +46,19 @@ export default function AdminLayout({ children }: { children: ReactNode }) {
 
           {/* Navigation Tabs */}
           <nav className="flex space-x-1 border-t border-gray-200 pt-2 -mb-px overflow-x-auto">
-            <a
-              href="/admin/dashboard"
-              className="px-6 py-3 text-sm font-medium rounded-t-lg transition-colors text-gray-600 hover:text-gray-900 hover:bg-gray-100 whitespace-nowrap"
-            >
-              Dashboard
-            </a>
-            <a
-              href="/admin/teachers"
-              className="px-6 py-3 text-sm font-medium rounded-t-lg transition-colors text-gray-600 hover:text-gray-900 hover:bg-gray-100 whitespace-nowrap"
-            >
-              Teachers
-            </a>
-            <a
-              href="/admin/students"
-              className="px-6 py-3 text-sm font-medium rounded-t-lg transition-colors text-gray-600 hover:text-gray-900 hover:bg-gray-100 whitespace-nowrap"
-            >
-              Students
-            </a>
-            <a
-              href="/admin/courses"
-              className="px-6 py-3 text-sm font-medium rounded-t-lg transition-colors text-gray-600 hover:text-gray-900 hover:bg-gray-100 whitespace-nowrap"
-            >
-              Course Assignments
-            </a>
-            <a
-              href="/admin/class-advisors"
-              className="px-6 py-3 text-sm font-medium rounded-t-lg transition-colors text-gray-600 hover:text-gray-900 hover:bg-gray-100 whitespace-nowrap"
-            >
-              Class Advisors
-            </a>
-            <a
-              href="/admin/dashboard?tab=pdf"
-              className="px-6 py-3 text-sm font-medium rounded-t-lg transition-colors text-gray-600 hover:text-gray-900 hover:bg-gray-100 whitespace-nowrap"
-            >
-              📄 PDF Upload
-            </a>
+            {navItems.map((item) => (
+              <Link
+                key={item.href}
+                href={item.href}
+                className={`px-6 py-3 text-sm font-medium rounded-t-lg transition-colors whitespace-nowrap ${
+                  isActive(item)
+                    ? 'bg-blue-50 text-blue-700 border-b-2 border-blue-500'
+                    : 'text-gray-600 hover:text-gray-900 hover:bg-gray-100'
+                }`}
+              >
+                {item.label}
+              </Link>
+            ))}
           </nav>
         </div>
       </header>
