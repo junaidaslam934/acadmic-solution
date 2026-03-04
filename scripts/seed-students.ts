@@ -2,7 +2,7 @@ import Student from '../src/models/Student';
 import connectDB from '../src/lib/mongodb';
 
 const generateStudents = () => {
-  const students = [];
+  const students: Array<Record<string, unknown>> = [];
   const sections = ['A', 'B', 'C'];
   const years = [1, 2, 3, 4];
   const courses = {

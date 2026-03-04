@@ -16,33 +16,31 @@ export default function LoginPage() {
   ];
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 flex items-center justify-center p-4">
+    <div className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-red-900 flex items-center justify-center p-4">
       <div className="w-full max-w-lg">
-        {/* Header */}
-        <div className="text-center mb-8">
-          <h1 className="text-3xl font-bold text-gray-900 mb-2">
-            Academic Solutions
-          </h1>
-          <p className="text-gray-600">
-            Sign in to your account
+        {/* Top banner */}
+        <div className="bg-red-800 text-white text-center py-3 px-6 rounded-t-2xl">
+          <h1 className="text-xl font-bold tracking-wide">CIS Academic Portal</h1>
+          <p className="text-red-200 text-xs mt-0.5">
+            Department of Computer &amp; Information Systems Engineering
           </p>
         </div>
 
         {/* Login Card */}
-        <div className="bg-white rounded-2xl shadow-xl overflow-hidden">
+        <div className="bg-white rounded-b-2xl shadow-2xl overflow-hidden">
           {/* Tab Navigation */}
           <div className="flex border-b border-gray-200 overflow-x-auto">
             {tabs.map((tab) => (
               <button
                 key={tab.id}
                 onClick={() => setActiveTab(tab.id)}
-                className={`flex-1 min-w-[80px] py-4 px-3 text-sm font-medium flex flex-col items-center gap-1 transition-colors ${
+                className={`flex-1 min-w-[70px] py-3 px-2 text-xs font-medium flex flex-col items-center gap-0.5 transition-colors ${
                   activeTab === tab.id
-                    ? 'bg-white text-blue-700 border-b-2 border-blue-500 shadow-sm'
+                    ? 'bg-white text-red-700 border-b-2 border-red-700'
                     : 'text-gray-500 hover:text-gray-700 hover:bg-gray-50'
                 }`}
               >
-                <span className="text-lg">{tab.icon}</span>
+                <span className="text-base">{tab.icon}</span>
                 <span>{tab.label}</span>
               </button>
             ))}
@@ -55,11 +53,11 @@ export default function LoginPage() {
         </div>
 
         {/* Footer */}
-        <div className="text-center mt-6">
-          <p className="text-sm text-gray-500">
-            Need help? Contact{' '}
-            <a href="#" className="text-blue-600 hover:text-blue-500">
-              support
+        <div className="text-center mt-4">
+          <p className="text-sm text-slate-400">
+            For registration issues, contact{' '}
+            <a href="#" className="text-red-400 hover:text-red-300">
+              admin
             </a>
           </p>
         </div>

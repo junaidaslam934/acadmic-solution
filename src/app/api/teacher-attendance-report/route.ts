@@ -57,7 +57,7 @@ export async function GET(request: NextRequest) {
       course.totalCreditHours += record.creditHours;
 
       // Add students to set
-      record.attendanceRecords.forEach((att) => {
+      record.attendanceRecords.forEach((att: any) => {
         course.totalStudents.add(att.studentId.toString());
       });
 
@@ -79,12 +79,12 @@ export async function GET(request: NextRequest) {
         date: record.date,
         creditHours: record.creditHours,
         totalStudents: record.attendanceRecords.length,
-        presentCount: record.attendanceRecords.filter((a) => !a.isAbsent).length,
-        absentCount: record.attendanceRecords.filter((a) => a.isAbsent).length,
+        presentCount: record.attendanceRecords.filter((a: any) => !a.isAbsent).length,
+        absentCount: record.attendanceRecords.filter((a: any) => a.isAbsent).length,
       });
 
       // Track student attendance
-      record.attendanceRecords.forEach((att) => {
+      record.attendanceRecords.forEach((att: any) => {
         const studentId = att.studentId.toString();
         if (!week.studentAttendance.has(studentId)) {
           week.studentAttendance.set(studentId, {
@@ -116,7 +116,7 @@ export async function GET(request: NextRequest) {
       courseName: course.courseName,
       totalCreditHours: course.totalCreditHours,
       totalStudents: course.totalStudents.size,
-      weeks: Array.from(course.weeks.values()).map((week) => ({
+      weeks: Array.from(course.weeks.values()).map((week: any) => ({
         weekNumber: week.weekNumber,
         totalCreditHours: week.totalCreditHours,
         classes: week.classes,

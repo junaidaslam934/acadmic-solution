@@ -1,6 +1,6 @@
 'use client';
 
-import { ReactNode } from 'react';
+import { ReactNode, Suspense } from 'react';
 import Link from 'next/link';
 import { usePathname, useSearchParams } from 'next/navigation';
 
@@ -13,7 +13,7 @@ const navItems = [
   { href: '/admin/dashboard?tab=pdf', label: '📄 PDF Upload', tab: 'pdf' },
 ];
 
-export default function AdminLayout({ children }: { children: ReactNode }) {
+function AdminNav() {
   const pathname = usePathname();
   const searchParams = useSearchParams();
   const currentTab = searchParams.get('tab');
@@ -27,6 +27,26 @@ export default function AdminLayout({ children }: { children: ReactNode }) {
   };
 
   return (
+    <nav className="flex space-x-1 border-t border-gray-200 pt-2 -mb-px overflow-x-auto">
+      {navItems.map((item) => (
+        <Link
+          key={item.href}
+          href={item.href}
+          className={`px-6 py-3 text-sm font-medium rounded-t-lg transition-colors whitespace-nowrap ${
+            isActive(item)
+              ? 'bg-red-50 text-red-700 border-b-2 border-red-600'
+              : 'text-gray-600 hover:text-gray-900 hover:bg-gray-100'
+          }`}
+        >
+          {item.label}
+        </Link>
+      ))}
+    </nav>
+  );
+}
+
+export default function AdminLayout({ children }: { children: ReactNode }) {
+  return (
     <div className="min-h-screen bg-gray-50">
       {/* Admin Header */}
       <header className="bg-white shadow-sm border-b sticky top-0 z-50">
@@ -38,28 +58,16 @@ export default function AdminLayout({ children }: { children: ReactNode }) {
             </div>
             <div className="flex items-center space-x-4">
               <span className="text-sm text-gray-500">Welcome, Admin</span>
-              <button className="bg-red-600 text-white px-4 py-2 rounded-lg hover:bg-red-700 transition-colors text-sm">
+              <button className="bg-red-700 text-white px-4 py-2 rounded-lg hover:bg-red-800 transition-colors text-sm">
                 Logout
               </button>
             </div>
           </div>
 
           {/* Navigation Tabs */}
-          <nav className="flex space-x-1 border-t border-gray-200 pt-2 -mb-px overflow-x-auto">
-            {navItems.map((item) => (
-              <Link
-                key={item.href}
-                href={item.href}
-                className={`px-6 py-3 text-sm font-medium rounded-t-lg transition-colors whitespace-nowrap ${
-                  isActive(item)
-                    ? 'bg-blue-50 text-blue-700 border-b-2 border-blue-500'
-                    : 'text-gray-600 hover:text-gray-900 hover:bg-gray-100'
-                }`}
-              >
-                {item.label}
-              </Link>
-            ))}
-          </nav>
+          <Suspense fallback={<nav className="h-10 border-t border-gray-200" />}>
+            <AdminNav />
+          </Suspense>
         </div>
       </header>
 

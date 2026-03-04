@@ -18,8 +18,8 @@ export async function GET(request: NextRequest) {
     }
     
     const students = await Student.find({
-      year: parseInt(year),
-      section: section,
+      year: parseInt(year) as unknown as 1 | 2 | 3 | 4,
+      section: section as "A" | "B" | "C",
       isActive: true,
     }).sort({ rollNumber: 1 });
     

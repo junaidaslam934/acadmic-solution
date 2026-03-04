@@ -45,7 +45,7 @@ export async function POST(request: NextRequest) {
         name: teacher.name,
         email: teacher.email,
         employeeId: teacher.employeeId,
-        department: teacher.department,
+        department: (teacher as any).department,
       },
     });
   } catch (error: any) {
