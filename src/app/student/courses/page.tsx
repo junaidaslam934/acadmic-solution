@@ -3,17 +3,27 @@
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import CourseRegistration from '@/components/student/CourseRegistration';
+import DashboardShell from '@/components/layout/DashboardShell';
+import { NavItem } from '@/components/layout/Sidebar';
+
+const NAV_ITEMS: NavItem[] = [
+  { id: 'courses', label: 'My Courses', icon: '📚' },
+  { id: 'attendance', label: 'Attendance', icon: '📊' },
+];
 
 export default function StudentCoursesPage() {
   const [studentId, setStudentId] = useState<string | null>(null);
+  const [studentName, setStudentName] = useState('Student');
   const [isLoading, setIsLoading] = useState(true);
   const router = useRouter();
 
   useEffect(() => {
     // Get student ID from localStorage
     const id = localStorage.getItem('studentId');
+    const name = localStorage.getItem('studentName');
     if (id) {
       setStudentId(id);
+      if (name) setStudentName(name);
     } else {
       // Redirect to login if not authenticated
       router.push('/student/login');
@@ -29,46 +39,27 @@ export default function StudentCoursesPage() {
     return null; // Will redirect
   }
 
-  return (
-    <div className="min-h-screen bg-gray-50">
-      {/* Navigation Tabs */}
-      <div className="bg-white border-b border-gray-200">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex gap-4 overflow-x-auto">
-            <button
-              onClick={() => router.push('/student/courses')}
-              className="px-6 py-3 font-medium text-blue-600 border-b-2 border-blue-600 whitespace-nowrap"
-            >
-              My Courses
-            </button>
-            <button
-              onClick={() => router.push('/student/attendance')}
-              className="px-6 py-3 font-medium text-gray-600 hover:text-gray-900 transition-colors whitespace-nowrap"
-            >
-              📊 Attendance
-            </button>
-          </div>
-        </div>
-      </div>
+  const handleLogout = () => {
+    localStorage.clear();
+    router.push('/student/login');
+  };
 
-      {/* Page Content */}
-      <div className="p-8">
-        <div className="max-w-7xl mx-auto">
-          <div className="flex justify-between items-center mb-8">
-            <h1 className="text-4xl font-bold text-gray-900">Course Registration</h1>
-            <button
-              onClick={() => {
-                localStorage.clear();
-                router.push('/student/login');
-              }}
-              className="bg-red-600 text-white px-4 py-2 rounded-lg hover:bg-red-700 transition-colors"
-            >
-              Logout
-            </button>
-          </div>
-          <CourseRegistration studentId={studentId} />
-        </div>
-      </div>
-    </div>
+  const handleNavSelect = (id: string) => {
+    if (id === 'attendance') router.push('/student/attendance');
+  };
+
+  return (
+    <DashboardShell
+      navItems={NAV_ITEMS}
+      activeItem="courses"
+      onNavSelect={handleNavSelect}
+      userName={studentName}
+      userRole="Student"
+      onLogout={handleLogout}
+      pageTitle="Course Registration"
+      pageSubtitle="CIS Academic Portal — Student"
+    >
+      <CourseRegistration studentId={studentId} />
+    </DashboardShell>
   );
 }

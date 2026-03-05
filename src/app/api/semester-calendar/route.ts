@@ -124,7 +124,7 @@ export async function GET(request: NextRequest) {
 
         // Combine makeup and regular classes
         const allClasses = [
-          ...makeupForDate.map((m) => ({
+          ...makeupForDate.map((m: any) => ({
             type: 'makeup',
             courseId: m.courseId,
             teacherId: m.teacherId,

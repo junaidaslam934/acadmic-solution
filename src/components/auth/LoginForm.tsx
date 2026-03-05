@@ -14,11 +14,13 @@ export default function LoginForm({ userRole }: LoginFormProps) {
     rememberMe: false
   });
   const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState('');
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
-    
+    setError('');
+
     if (userRole === 'student') {
       // Student login with ID only
       try {
@@ -38,11 +40,11 @@ export default function LoginForm({ userRole }: LoginFormProps) {
           localStorage.setItem('studentSection', data.student.section);
           window.location.href = '/student/courses';
         } else {
-          alert(data.message || 'Login failed');
+          setError(data.message || 'Login failed');
           setIsLoading(false);
         }
-      } catch (error) {
-        alert('An error occurred. Please try again.');
+      } catch {
+        setError('An error occurred. Please try again.');
         setIsLoading(false);
       }
     } else if (userRole === 'class-advisor') {
@@ -62,11 +64,11 @@ export default function LoginForm({ userRole }: LoginFormProps) {
           localStorage.setItem('advisorName', data.advisor.teacherName);
           window.location.href = '/class-advisor/dashboard';
         } else {
-          alert(data.message || 'Login failed');
+          setError(data.message || 'Login failed');
           setIsLoading(false);
         }
-      } catch (error) {
-        alert('An error occurred. Please try again.');
+      } catch {
+        setError('An error occurred. Please try again.');
         setIsLoading(false);
       }
     } else if (userRole === 'coordinator') {
@@ -92,11 +94,11 @@ export default function LoginForm({ userRole }: LoginFormProps) {
           localStorage.setItem('teacherEmail', data.teacher.email);
           window.location.href = '/teacher/dashboard';
         } else {
-          alert(data.message || 'Login failed');
+          setError(data.message || 'Login failed');
           setIsLoading(false);
         }
-      } catch (error) {
-        alert('An error occurred. Please try again.');
+      } catch {
+        setError('An error occurred. Please try again.');
         setIsLoading(false);
       }
     } else if (userRole === 'admin') {
@@ -117,11 +119,11 @@ export default function LoginForm({ userRole }: LoginFormProps) {
           localStorage.setItem('adminRole', data.admin.role);
           window.location.href = '/admin/dashboard';
         } else {
-          alert(data.message || 'Login failed');
+          setError(data.message || 'Login failed');
           setIsLoading(false);
         }
-      } catch (error) {
-        alert('An error occurred. Please try again.');
+      } catch {
+        setError('An error occurred. Please try again.');
         setIsLoading(false);
       }
     }
@@ -166,43 +168,50 @@ export default function LoginForm({ userRole }: LoginFormProps) {
   };
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-6">
+    <form onSubmit={handleSubmit} className="space-y-5">
+      {/* Inline error banner */}
+      {error && (
+        <div className="bg-red-50 border border-red-300 text-red-700 px-4 py-3 rounded-lg text-sm">
+          {error}
+        </div>
+      )}
+
       {/* Role Indicator */}
       <div className="text-center">
-        <div className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-blue-100 text-blue-800">
+        <div className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-red-100 text-red-800">
           Signing in as {userRole === 'class-advisor' ? 'Class Advisor' : userRole.charAt(0).toUpperCase() + userRole.slice(1)}
         </div>
       </div>
 
       {/* ID/Email Field - Hidden for admin */}
       {userRole !== 'admin' && (
-      <div>
-        <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-2">
-          {getFieldLabel()}
-        </label>
-        <input
-          id="email"
-          name="email"
-          type={getFieldType()}
-          required
-          value={formData.email}
-          onChange={handleInputChange}
-          placeholder={getRoleSpecificPlaceholder()}
-          className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors duration-200"
-        />
-        {(userRole === 'class-advisor' || userRole === 'staff' || userRole === 'coordinator' || userRole === 'student') && (
-          <p className="mt-2 text-xs text-gray-500">
-            {`Example: ${userRole === 'class-advisor' ? '6942e61578335fab453721ae' : userRole === 'coordinator' ? '67xxxxxxxxxxxxxxxxxx' : userRole === 'student' ? '6941cfd8f594c8e7c63aaf6b' : '6941cfd8f594c8e7c63aaf6b'}`}
-          </p>
-        )}
-      </div>
+        <div>
+          <label htmlFor="email" className="block text-sm font-medium text-teal-700 mb-1.5">
+            👤 {getFieldLabel()}
+          </label>
+          <input
+            id="email"
+            name="email"
+            type={getFieldType()}
+            required
+            value={formData.email}
+            onChange={handleInputChange}
+            placeholder={getRoleSpecificPlaceholder()}
+            className="w-full px-4 py-2.5 border border-gray-300 rounded-lg bg-gray-50 focus:ring-2 focus:ring-red-600 focus:border-transparent transition-colors duration-200"
+          />
+          {(userRole === 'class-advisor' || userRole === 'staff' || userRole === 'coordinator' || userRole === 'student') && (
+            <p className="mt-1.5 text-xs text-gray-500">
+              {`Example: ${userRole === 'class-advisor' ? '6942e61578335fab453721ae' : userRole === 'coordinator' ? '67xxxxxxxxxxxxxxxxxx' : userRole === 'student' ? '6941cfd8f594c8e7c63aaf6b' : '6941cfd8f594c8e7c63aaf6b'}`}
+            </p>
+          )}
+        </div>
       )}
 
       {/* Key/Password Field - For admin only */}
       {userRole === 'admin' && (
         <div>
-          <label htmlFor="password" className="block text-sm font-medium text-gray-700 mb-2">
-            Key
+          <label htmlFor="password" className="block text-sm font-medium text-teal-700 mb-1.5">
+            🔒 Key
           </label>
           <input
             id="password"
@@ -212,9 +221,9 @@ export default function LoginForm({ userRole }: LoginFormProps) {
             value={formData.password}
             onChange={handleInputChange}
             placeholder="Enter your key"
-            className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors duration-200"
+            className="w-full px-4 py-2.5 border border-gray-300 rounded-lg bg-gray-50 focus:ring-2 focus:ring-red-600 focus:border-transparent transition-colors duration-200"
           />
-          <p className="mt-2 text-xs text-gray-500">Example: 12345678</p>
+          <p className="mt-1.5 text-xs text-gray-500">Example: 12345678</p>
         </div>
       )}
 
@@ -225,7 +234,7 @@ export default function LoginForm({ userRole }: LoginFormProps) {
         className={`w-full py-3 px-4 rounded-lg font-medium text-white transition-colors duration-200 ${
           isLoading
             ? 'bg-gray-400 cursor-not-allowed'
-            : 'bg-blue-600 hover:bg-blue-700'
+            : 'bg-red-700 hover:bg-red-800'
         }`}
       >
         {isLoading ? (
@@ -241,8 +250,8 @@ export default function LoginForm({ userRole }: LoginFormProps) {
       {/* Additional Links */}
       <div className="text-center">
         <p className="text-sm text-gray-600">
-          Don't have an account?{' '}
-          <a href="#" className="text-blue-600 hover:text-blue-500 font-medium">
+          Don&apos;t have an account?{' '}
+          <a href="#" className="text-red-700 hover:text-red-600 font-medium">
             Contact administrator
           </a>
         </p>

@@ -5,6 +5,8 @@ import { useRouter } from 'next/navigation';
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
 import StatCard from '@/components/ui/StatCard';
+import DashboardShell from '@/components/layout/DashboardShell';
+import { NavItem } from '@/components/layout/Sidebar';
 
 interface Assignment {
   _id: string;
@@ -698,38 +700,30 @@ export default function CoordinatorDashboard() {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
         <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-purple-600 mx-auto mb-4"></div>
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-red-700 mx-auto mb-4"></div>
           <p className="text-gray-600">Loading...</p>
         </div>
       </div>
     );
   }
 
-  return (
-    <div className="min-h-screen bg-gray-50">
-      {/* Header */}
-      <header className="bg-white shadow-sm border-b">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between items-center py-4">
-            <div>
-              <h1 className="text-2xl font-bold text-purple-600">Coordinator Portal</h1>
-              <p className="text-sm text-gray-600">Course Assignment Reports</p>
-            </div>
-            <div className="flex items-center space-x-4">
-              <span className="text-sm text-gray-500">Welcome, {coordinatorName}</span>
-              <button 
-                onClick={handleLogout}
-                className="bg-red-600 text-white px-4 py-2 rounded-lg hover:bg-red-700 transition-colors text-sm"
-              >
-                Logout
-              </button>
-            </div>
-          </div>
-        </div>
-      </header>
+  const NAV_ITEMS: NavItem[] = [
+    { id: 'upload', label: 'Upload to n8n', icon: '📥' },
+    { id: 'reports', label: 'Download Reports', icon: '📄' },
+  ];
 
-      {/* Main Content */}
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+  return (
+    <DashboardShell
+      navItems={NAV_ITEMS}
+      activeItem="upload"
+      onNavSelect={() => {}}
+      userName={coordinatorName}
+      userRole="Coordinator"
+      onLogout={handleLogout}
+      pageTitle="Coordinator Portal"
+      pageSubtitle="CIS Academic Portal — Course Assignment Reports"
+    >
+      <div className="max-w-5xl mx-auto">
         {/* Upload to n8n Section */}
         <div className="bg-gradient-to-r from-blue-500 to-indigo-600 rounded-lg shadow-lg p-6 mb-8">
           <div className="flex flex-col space-y-4">
@@ -925,7 +919,7 @@ export default function CoordinatorDashboard() {
             </div>
           </div>
         </div>
-      </main>
-    </div>
+      </div>
+    </DashboardShell>
   );
 }
