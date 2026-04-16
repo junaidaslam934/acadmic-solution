@@ -9,6 +9,7 @@ import { NavItem } from '@/components/layout/Sidebar';
 const NAV_ITEMS: NavItem[] = [
   { id: 'courses', label: 'My Courses', icon: '📚' },
   { id: 'attendance', label: 'Attendance', icon: '📊' },
+  { id: 'grades', label: 'Grades', icon: '🎓' },
   { id: 'chat', label: 'Messages', icon: '💬' },
 ];
 
@@ -47,6 +48,7 @@ export default function StudentCoursesPage() {
 
   const handleNavSelect = (id: string) => {
     if (id === 'attendance') router.push('/student/attendance');
+    if (id === 'grades') router.push('/student/grades');
     if (id === 'chat') router.push('/student/chat');
   };
 
