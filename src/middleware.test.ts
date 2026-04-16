@@ -1,16 +1,4 @@
-import { describe, it, expect, vi, beforeEach } from 'vitest';
-
-// ---------------------------------------------------------------------------
-// Helpers: build a minimal mock for withAuth-wrapped requests
-// ---------------------------------------------------------------------------
-
-function makeRequest(pathname: string, role: string | null) {
-  return {
-    nextauth: { token: role ? { role } : null },
-    nextUrl: { pathname },
-    url: `http://localhost${pathname}`,
-  } as any;
-}
+import { describe, it, expect } from 'vitest';
 
 // ---------------------------------------------------------------------------
 // We test the route-protection logic by extracting it from the middleware.
