@@ -3,44 +3,45 @@
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import ChatLayout from '@/components/chat/ChatLayout';
+import DashboardShell from '@/components/layout/DashboardShell';
+import { NavItem } from '@/components/layout/Sidebar';
+
+const NAV_ITEMS: NavItem[] = [
+  { id: 'courses', label: 'My Courses', icon: '📚' },
+  { id: 'attendance', label: 'Attendance', icon: '📊' },
+  { id: 'grades', label: 'Grades', icon: '🎓' },
+  { id: 'chat', label: 'Messages', icon: '💬' },
+];
 
 export default function StudentChatPage() {
   const router = useRouter();
-  const [studentData, setStudentData] = useState<{
-    id: string;
-    name: string;
-  } | null>(null);
+  const [studentData, setStudentData] = useState<{ id: string; name: string } | null>(null);
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    // Get student data from localStorage (from existing login system)
     const studentId = localStorage.getItem('studentId');
     const studentName = localStorage.getItem('studentName');
 
     if (!studentId || !studentName) {
-      // Redirect to login if not authenticated
       router.push('/login');
       return;
     }
 
-    setStudentData({
-      id: studentId,
-      name: studentName
-    });
+    setStudentData({ id: studentId, name: studentName });
     setIsLoading(false);
   }, [router]);
 
   if (isLoading) {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-red-600"></div>
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-red-600" />
       </div>
     );
   }
 
   if (!studentData) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center p-4">
         <div className="text-center">
           <h1 className="text-xl font-semibold text-gray-900 mb-2">Authentication Required</h1>
           <p className="text-gray-600">Please log in to access the chat system.</p>
@@ -49,36 +50,30 @@ export default function StudentChatPage() {
     );
   }
 
-  return (
-    <div className="min-h-screen bg-gray-50">
-      {/* Header */}
-      <div className="bg-white shadow-sm border-b">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex items-center justify-between h-16">
-            <div className="flex items-center">
-              <button
-                onClick={() => router.back()}
-                className="mr-4 text-gray-600 hover:text-gray-900"
-              >
-                ← Back
-              </button>
-              <h1 className="text-xl font-semibold text-gray-900">Messages</h1>
-            </div>
-            <div className="flex items-center space-x-4">
-              <span className="text-sm text-gray-600">
-                Welcome, {studentData.name}
-              </span>
-              <div className="w-8 h-8 bg-red-600 rounded-full flex items-center justify-center text-white text-sm font-medium">
-                {studentData.name.charAt(0).toUpperCase()}
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
+  const handleLogout = () => {
+    localStorage.clear();
+    router.push('/login');
+  };
 
-      {/* Chat Interface */}
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <div className="bg-white rounded-lg shadow-lg overflow-hidden">
+  const handleNavSelect = (id: string) => {
+    if (id === 'courses') router.push('/student/courses');
+    if (id === 'attendance') router.push('/student/attendance');
+    if (id === 'grades') router.push('/student/grades');
+  };
+
+  return (
+    <DashboardShell
+      navItems={NAV_ITEMS}
+      activeItem="chat"
+      onNavSelect={handleNavSelect}
+      userName={studentData.name}
+      userRole="Student"
+      onLogout={handleLogout}
+      pageTitle="Messages"
+      pageSubtitle="CIS Academic Portal — Student"
+    >
+      <div className="max-w-5xl mx-auto">
+        <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
           <ChatLayout
             userId={studentData.id}
             userRole="student"
@@ -86,6 +81,6 @@ export default function StudentChatPage() {
           />
         </div>
       </div>
-    </div>
+    </DashboardShell>
   );
 }

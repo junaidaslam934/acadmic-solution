@@ -3,16 +3,28 @@
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import AttendanceView from '@/components/student/AttendanceView';
+import DashboardShell from '@/components/layout/DashboardShell';
+import { NavItem } from '@/components/layout/Sidebar';
+
+const NAV_ITEMS: NavItem[] = [
+  { id: 'courses', label: 'My Courses', icon: '📚' },
+  { id: 'attendance', label: 'Attendance', icon: '📊' },
+  { id: 'grades', label: 'Grades', icon: '🎓' },
+  { id: 'chat', label: 'Messages', icon: '💬' },
+];
 
 export default function StudentAttendancePage() {
   const [studentId, setStudentId] = useState<string | null>(null);
+  const [studentName, setStudentName] = useState('Student');
   const [isLoading, setIsLoading] = useState(true);
   const router = useRouter();
 
   useEffect(() => {
     const id = localStorage.getItem('studentId');
+    const name = localStorage.getItem('studentName');
     if (id) {
       setStudentId(id);
+      if (name) setStudentName(name);
     } else {
       router.push('/login');
     }
@@ -20,60 +32,42 @@ export default function StudentAttendancePage() {
   }, [router]);
 
   if (isLoading) {
-    return <div className="text-center py-8">Loading...</div>;
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gray-50">
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-red-600" />
+      </div>
+    );
   }
 
   if (!studentId) {
     return null;
   }
 
+  const handleLogout = () => {
+    localStorage.clear();
+    router.push('/login');
+  };
+
+  const handleNavSelect = (id: string) => {
+    if (id === 'courses') router.push('/student/courses');
+    if (id === 'grades') router.push('/student/grades');
+    if (id === 'chat') router.push('/student/chat');
+  };
+
   return (
-    <div className="min-h-screen bg-gray-50">
-      {/* Navigation Tabs */}
-      <div className="bg-white border-b border-gray-200">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex gap-4 overflow-x-auto">
-            <button
-              onClick={() => router.push('/student/courses')}
-              className="px-6 py-3 font-medium text-gray-600 hover:text-gray-900 transition-colors whitespace-nowrap"
-            >
-              My Courses
-            </button>
-            <button
-              onClick={() => router.push('/student/attendance')}
-              className="px-6 py-3 font-medium text-blue-600 border-b-2 border-blue-600 whitespace-nowrap"
-            >
-              📊 Attendance
-            </button>
-            <button
-              onClick={() => router.push('/student/chat')}
-              className="px-6 py-3 font-medium text-gray-600 hover:text-gray-900 transition-colors whitespace-nowrap"
-            >
-              💬 Messages
-            </button>
-          </div>
-        </div>
+    <DashboardShell
+      navItems={NAV_ITEMS}
+      activeItem="attendance"
+      onNavSelect={handleNavSelect}
+      userName={studentName}
+      userRole="Student"
+      onLogout={handleLogout}
+      pageTitle="My Attendance"
+      pageSubtitle="CIS Academic Portal — Student"
+    >
+      <div className="max-w-4xl mx-auto">
+        <AttendanceView studentId={studentId} />
       </div>
-
-      {/* Page Content */}
-      <div className="p-8">
-        <div className="max-w-4xl mx-auto">
-          <div className="flex justify-between items-center mb-8">
-            <h1 className="text-4xl font-bold text-gray-900">My Attendance</h1>
-            <button
-              onClick={() => {
-                localStorage.clear();
-                router.push('/login');
-              }}
-              className="bg-red-600 text-white px-4 py-2 rounded-lg hover:bg-red-700 transition-colors"
-            >
-              Logout
-            </button>
-          </div>
-
-          <AttendanceView studentId={studentId} />
-        </div>
-      </div>
-    </div>
+    </DashboardShell>
   );
 }
