@@ -16,7 +16,7 @@ export async function GET() {
       success: true,
       data: advisors,
     });
-  } catch (error) {
+  } catch (error: any) {
     console.error('Error fetching class advisors:', error);
     
     return NextResponse.json({
@@ -107,7 +107,7 @@ export async function POST(request: NextRequest) {
         data: populated,
       });
     }
-  } catch (error) {
+  } catch (error: any) {
     console.error('Error assigning class advisor:', error);
     
     return NextResponse.json({
@@ -145,7 +145,7 @@ export async function DELETE(request: NextRequest) {
       success: true,
       message: `Class advisor for Year ${year} removed successfully`,
     });
-  } catch (error) {
+  } catch (error: any) {
     console.error('Error removing class advisor:', error);
     
     return NextResponse.json({

@@ -89,7 +89,7 @@ export async function POST(request: NextRequest) {
     }
     
     // Get course details to check credits
-    const db = mongoose.connection.db;
+    const db = mongoose.connection.db!;
     let courseCredits = 1;
     
     if (db) {

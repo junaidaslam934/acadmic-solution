@@ -23,7 +23,7 @@ export async function GET(_request: NextRequest) {
       timestamp: new Date().toISOString()
     });
 
-  } catch (error) {
+  } catch (error: any) {
     console.error('PDF GET error:', error);
     return NextResponse.json(
       {
@@ -137,7 +137,7 @@ export async function POST(request: NextRequest) {
       }
     });
 
-  } catch (error) {
+  } catch (error: any) {
     console.error('PDF upload error:', error);
     return NextResponse.json(
       {

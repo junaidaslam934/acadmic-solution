@@ -17,6 +17,8 @@ const NAV_ITEMS: NavItem[] = [
 export default function ClassAdvisorDashboard() {
   const router = useRouter();
   const [advisorName, setAdvisorName] = useState('Advisor');
+  const [statsLoading, setStatsLoading] = useState(true);
+  const [statsError, setStatsError] = useState(false);
   const [stats, setStats] = useState({
     totalCourses: 0,
     totalAssignments: 0,
@@ -31,6 +33,8 @@ export default function ClassAdvisorDashboard() {
   }, []);
 
   const fetchStats = async () => {
+    setStatsLoading(true);
+    setStatsError(false);
     try {
       const [coursesRes, assignmentsRes, preferencesRes, teachersRes] = await Promise.all([
         fetch('/api/courses'),
@@ -52,6 +56,9 @@ export default function ClassAdvisorDashboard() {
       });
     } catch (error) {
       console.error('Error fetching stats:', error);
+      setStatsError(true);
+    } finally {
+      setStatsLoading(false);
     }
   };
 
@@ -86,6 +93,21 @@ export default function ClassAdvisorDashboard() {
 
         {/* Stats Grid */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+          {statsLoading ? (
+            <div className="col-span-4 flex items-center justify-center py-8 text-gray-500">
+              <svg className="animate-spin h-6 w-6 mr-2 text-red-700" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z"></path>
+              </svg>
+              Loading statistics…
+            </div>
+          ) : statsError ? (
+            <div className="col-span-4 flex items-center justify-between bg-red-50 border border-red-200 rounded-lg px-4 py-3 text-red-700 text-sm">
+              <span>Failed to load statistics.</span>
+              <button onClick={fetchStats} className="ml-4 underline hover:no-underline text-red-800 font-medium">Retry</button>
+            </div>
+          ) : (
+            <>
           <StatCard
             label="Total Courses"
             value={stats.totalCourses}
@@ -118,6 +140,8 @@ export default function ClassAdvisorDashboard() {
               </svg>
             }
           />
+          </>
+          )}
         </div>
 
         {/* Quick Actions */}

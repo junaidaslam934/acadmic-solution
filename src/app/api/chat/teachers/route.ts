@@ -25,8 +25,8 @@ export async function GET(request: NextRequest) {
 
     // If no teachers found, let's check if the collection exists
     if (teachers.length === 0) {
-      const collections = await Teacher.db.db.listCollections().toArray();
-      console.log('Available collections:', collections.map(c => c.name));
+      const collections = await Teacher.db.db?.listCollections().toArray() ?? [];
+      console.log('Available collections:', collections.map((c: { name: string }) => c.name));
     }
 
     return NextResponse.json({
@@ -34,12 +34,12 @@ export async function GET(request: NextRequest) {
       teachers: teachers || []
     });
 
-  } catch (error) {
+  } catch (error: any) {
     console.error('Error fetching teachers:', error);
     return NextResponse.json({
       success: false,
       message: 'Failed to fetch teachers',
-      error: error.message
+      error: error instanceof Error ? error.message : 'Unknown error'
     }, { status: 500 });
   }
 }

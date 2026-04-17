@@ -20,7 +20,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Query the admin collection directly
-    const db = mongoose.connection.db;
+    const db = mongoose.connection.db!;
     if (!db) {
       throw new Error('Database connection failed');
     }
@@ -72,7 +72,7 @@ export async function POST(request: NextRequest) {
       },
       { status: 200 }
     );
-  } catch (error) {
+  } catch (error: any) {
     console.error('Admin login error:', error);
     return NextResponse.json(
       { success: false, message: 'An error occurred during login' },

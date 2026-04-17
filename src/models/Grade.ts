@@ -104,7 +104,7 @@ GradeSchema.index({ studentId: 1, gradedAt: -1 });
 GradeSchema.index({ teacherId: 1, gradedAt: -1 });
 
 // Pre-save middleware to calculate percentage
-GradeSchema.pre('save', function(next) {
+GradeSchema.pre('save', function(this: any, next: any) {
   if (this.totalMarks > 0) {
     this.percentage = Math.round((this.marksObtained / this.totalMarks) * 100 * 100) / 100;
   }

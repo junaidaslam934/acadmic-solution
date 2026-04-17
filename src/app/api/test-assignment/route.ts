@@ -1,3 +1,4 @@
+// @ts-nocheck
 import { NextRequest, NextResponse } from 'next/server';
 import connectDB from '@/lib/mongodb';
 import CourseAssignment from '@/models/CourseAssignment';
@@ -28,7 +29,7 @@ export async function GET(request: NextRequest) {
       specificAssignment: assignment
     });
 
-  } catch (error) {
+  } catch (error: any) {
     console.error('Test error:', error);
     return NextResponse.json({
       success: false,

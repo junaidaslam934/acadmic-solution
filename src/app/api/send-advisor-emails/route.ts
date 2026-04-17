@@ -54,7 +54,7 @@ export async function POST(request: NextRequest) {
       n8nResponse: responseData
     });
 
-  } catch (error) {
+  } catch (error: any) {
     console.error('Email notification error:', error);
     return NextResponse.json(
       { 

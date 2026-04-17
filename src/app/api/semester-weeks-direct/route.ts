@@ -6,7 +6,7 @@ export async function GET(request: NextRequest) {
   try {
     await connectDB();
     
-    const db = mongoose.connection.db;
+    const db = mongoose.connection.db!;
     if (!db) {
       throw new Error('Database connection not available');
     }
@@ -22,7 +22,7 @@ export async function GET(request: NextRequest) {
       weeks: weeks
     });
     
-  } catch (error) {
+  } catch (error: any) {
     console.error('Error fetching weeks directly:', error);
     return NextResponse.json(
       { error: (error as Error).message },

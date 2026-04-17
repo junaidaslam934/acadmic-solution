@@ -7,9 +7,10 @@ import mongoose from 'mongoose';
 
 export async function GET(
   request: NextRequest,
-  { params }: { params: { courseId: string } }
+  context: { params: Promise<{ courseId: string }> }
 ) {
   try {
+    const { courseId } = await context.params;
     const { searchParams } = new URL(request.url);
     const section = searchParams.get('section') as 'A' | 'B' | 'C';
     const assessmentId = searchParams.get('assessmentId');
@@ -27,7 +28,7 @@ export async function GET(
     // Verify teacher has access to this course
     const assignment = await CourseAssignment.findOne({
       teacherId: teacherId,
-      courseId: params.courseId
+      courseId: courseId
     });
 
     if (!assignment) {
@@ -38,7 +39,7 @@ export async function GET(
     }
 
     // Get course details from allcourses collection
-    const db = mongoose.connection.db;
+    const db = mongoose.connection.db!;
     if (!db) {
       throw new Error('Database connection failed');
     }
@@ -47,14 +48,14 @@ export async function GET(
     let course = null;
     
     try {
-      if (mongoose.Types.ObjectId.isValid(params.courseId)) {
+      if (mongoose.Types.ObjectId.isValid(courseId)) {
         course = await coursesCollection.findOne({ 
-          _id: new mongoose.Types.ObjectId(params.courseId) 
+          _id: new mongoose.Types.ObjectId(courseId) 
         });
       }
       
       if (!course) {
-        course = await coursesCollection.findOne({ _id: params.courseId });
+        course = await coursesCollection.findOne({ _id: courseId as any });
       }
     } catch (err) {
       console.error('Error finding course:', err);
@@ -88,7 +89,7 @@ export async function GET(
     }
 
     // If assessmentId is provided, get existing grades
-    let studentsWithGrades = studentsToReturn;
+    let studentsWithGrades: any[] = studentsToReturn;
     if (assessmentId) {
       const grades = await Grade.find({
         assessmentId: assessmentId
@@ -117,7 +118,7 @@ export async function GET(
       section: section
     });
 
-  } catch (error) {
+  } catch (error: any) {
     console.error('Error fetching students:', error);
     return NextResponse.json(
       { error: 'Failed to fetch students' },

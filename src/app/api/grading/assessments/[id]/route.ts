@@ -6,10 +6,11 @@ import Grade from '@/models/Grade';
 // PUT /api/grading/assessments/[id] - Update assessment
 export async function PUT(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  context: { params: Promise<{ id: string }> }
 ) {
   try {
     await connectDB();
+    const { id } = await context.params;
     
     const { teacherId, name, type, totalMarks, description } = await request.json();
     
@@ -22,7 +23,7 @@ export async function PUT(
 
     // Find and verify ownership
     const assessment = await Assessment.findOne({
-      _id: params.id,
+      _id: id,
       teacherId: teacherId
     });
 
@@ -47,7 +48,7 @@ export async function PUT(
       assessment
     });
 
-  } catch (error) {
+  } catch (error: any) {
     console.error('Error updating assessment:', error);
     return NextResponse.json({
       success: false,
@@ -59,10 +60,11 @@ export async function PUT(
 // DELETE /api/grading/assessments/[id] - Delete assessment
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  context: { params: Promise<{ id: string }> }
 ) {
   try {
     await connectDB();
+    const { id } = await context.params;
     
     const { searchParams } = new URL(request.url);
     const teacherId = searchParams.get('teacherId');
@@ -76,7 +78,7 @@ export async function DELETE(
 
     // Find and verify ownership
     const assessment = await Assessment.findOne({
-      _id: params.id,
+      _id: id,
       teacherId: teacherId
     });
 
@@ -89,7 +91,7 @@ export async function DELETE(
 
     // Check if there are any grades for this assessment
     const gradeCount = await Grade.countDocuments({
-      assessmentId: params.id
+      assessmentId: id
     });
 
     if (gradeCount > 0) {
@@ -100,14 +102,14 @@ export async function DELETE(
     }
 
     // Delete the assessment
-    await Assessment.findByIdAndDelete(params.id);
+    await Assessment.findByIdAndDelete(id);
 
     return NextResponse.json({
       success: true,
       message: 'Assessment deleted successfully'
     });
 
-  } catch (error) {
+  } catch (error: any) {
     console.error('Error deleting assessment:', error);
     return NextResponse.json({
       success: false,

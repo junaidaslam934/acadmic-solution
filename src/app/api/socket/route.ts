@@ -48,7 +48,7 @@ export function initializeSocketIO(server: NetServer) {
         socket.data.userId = userId;
         socket.data.userRole = userRole;
         next();
-      } catch (error) {
+      } catch (error: any) {
         next(new Error('Authentication failed'));
       }
     });
@@ -128,7 +128,7 @@ export function initializeSocketIO(server: NetServer) {
             });
           }
 
-        } catch (error) {
+        } catch (error: any) {
           console.error('Error sending message:', error);
           socket.emit('error', { message: 'Failed to send message' });
         }
@@ -193,7 +193,7 @@ export function initializeSocketIO(server: NetServer) {
             readAt: new Date()
           });
 
-        } catch (error) {
+        } catch (error: any) {
           console.error('Error marking messages as read:', error);
         }
       });

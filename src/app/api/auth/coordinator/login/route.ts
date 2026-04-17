@@ -43,7 +43,7 @@ export async function POST(request: NextRequest) {
         department: coordinator.department
       }
     });
-  } catch (error) {
+  } catch (error: any) {
     console.error('Coordinator login error:', error);
     return NextResponse.json(
       { success: false, error: 'Login failed' },

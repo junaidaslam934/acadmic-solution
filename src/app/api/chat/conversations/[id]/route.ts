@@ -5,12 +5,12 @@ import Conversation from '@/models/Conversation';
 // GET /api/chat/conversations/[id] - Get specific conversation
 export async function GET(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  context: { params: Promise<{ id: string }> }
 ) {
   try {
     await connectDB();
     
-    const conversationId = params.id;
+    const { id: conversationId } = await context.params;
     const { searchParams } = new URL(request.url);
     const userId = searchParams.get('userId');
     
@@ -50,7 +50,7 @@ export async function GET(
       conversation
     });
 
-  } catch (error) {
+  } catch (error: any) {
     console.error('Error fetching conversation:', error);
     return NextResponse.json({
       success: false,

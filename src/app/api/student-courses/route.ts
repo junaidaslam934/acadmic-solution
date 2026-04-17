@@ -29,7 +29,7 @@ export async function GET(request: NextRequest) {
     }
     
     // Get courses for student's year and semester
-    const db = mongoose.connection.db;
+    const db = mongoose.connection.db!;
     if (!db) {
       throw new Error('Database connection failed');
     }
@@ -91,7 +91,7 @@ export async function POST(request: NextRequest) {
     }
     
     // Check if course exists
-    const db = mongoose.connection.db;
+    const db = mongoose.connection.db!;
     if (!db) {
       throw new Error('Database connection failed');
     }

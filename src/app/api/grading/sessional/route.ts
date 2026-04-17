@@ -36,7 +36,7 @@ export async function GET(request: NextRequest) {
     }
 
     // Get course details from allcourses collection
-    const db = mongoose.connection.db;
+    const db = mongoose.connection.db!;
     if (!db) {
       throw new Error('Database connection failed');
     }
@@ -52,7 +52,7 @@ export async function GET(request: NextRequest) {
       }
       
       if (!course) {
-        course = await coursesCollection.findOne({ _id: courseId });
+        course = await coursesCollection.findOne({ _id: courseId as any });
       }
     } catch (err) {
       console.error('Error finding course:', err);
@@ -115,7 +115,7 @@ export async function GET(request: NextRequest) {
       section: section
     });
 
-  } catch (error) {
+  } catch (error: any) {
     console.error('Error fetching sessional marks:', error);
     return NextResponse.json(
       { error: 'Failed to fetch students and marks' },
@@ -212,7 +212,7 @@ export async function POST(request: NextRequest) {
       errors: errors.length > 0 ? errors : undefined
     });
 
-  } catch (error) {
+  } catch (error: any) {
     console.error('Error saving sessional marks:', error);
     return NextResponse.json(
       { error: 'Failed to save marks' },

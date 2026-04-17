@@ -29,7 +29,7 @@ export async function GET(request: NextRequest) {
       assignments: data.assignments || []
     });
 
-  } catch (error) {
+  } catch (error: any) {
     console.error('Error fetching teacher courses:', error);
     return NextResponse.json(
       { error: 'Failed to fetch courses' },

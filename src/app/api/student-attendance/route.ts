@@ -29,7 +29,7 @@ export async function GET(request: NextRequest) {
     }
 
     // Get all courses from allcourses collection for this student's year
-    const db = mongoose.connection.db;
+    const db = mongoose.connection.db!;
     let allCourses: any[] = [];
     
     if (db) {

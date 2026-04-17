@@ -35,6 +35,7 @@ export default function CoordinatorDashboard() {
   const [coordinatorName, setCoordinatorName] = useState('');
   const [assignments, setAssignments] = useState<Assignment[]>([]);
   const [loading, setLoading] = useState(true);
+  const [fetchError, setFetchError] = useState(false);
   const [uploading, setUploading] = useState(false);
   const [uploadStatus, setUploadStatus] = useState<string>('');
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
@@ -53,6 +54,7 @@ export default function CoordinatorDashboard() {
   }, []);
 
   const fetchAllAssignments = async () => {
+    setFetchError(false);
     try {
       const res = await fetch('/api/course-assignments');
       const data = await res.json();
@@ -62,6 +64,7 @@ export default function CoordinatorDashboard() {
       }
     } catch (error) {
       console.error('Error fetching assignments:', error);
+      setFetchError(true);
     } finally {
       setLoading(false);
     }
@@ -702,6 +705,22 @@ export default function CoordinatorDashboard() {
         <div className="text-center">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-red-700 mx-auto mb-4"></div>
           <p className="text-gray-600">Loading...</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (fetchError) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="text-center">
+          <p className="text-red-600 mb-4">Failed to load assignments. Please try again.</p>
+          <button
+            onClick={() => { setLoading(true); fetchAllAssignments(); }}
+            className="px-4 py-2 bg-red-700 text-white rounded hover:bg-red-800"
+          >
+            Retry
+          </button>
         </div>
       </div>
     );

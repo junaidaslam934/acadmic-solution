@@ -122,7 +122,7 @@ SessionalMarksSchema.index({
 }, { unique: true });
 
 // Calculate total marks before saving
-SessionalMarksSchema.pre('save', function(next) {
+SessionalMarksSchema.pre('save', function(this: any, next: any) {
   this.totalMarks = this.quizMarks + this.assignmentMarks + this.midMarks;
   this.totalPossible = this.quizTotal + this.assignmentTotal + this.midTotal;
   next();

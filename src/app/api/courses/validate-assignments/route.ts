@@ -96,7 +96,7 @@ export async function GET(request: NextRequest) {
       }
     });
 
-  } catch (error) {
+  } catch (error: any) {
     console.error('Error validating course assignments:', error);
     return NextResponse.json(
       { success: false, error: 'Failed to validate course assignments' },

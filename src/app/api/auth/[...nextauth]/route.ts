@@ -1,4 +1,4 @@
-import NextAuth from 'next-auth'
+import NextAuth, { User } from 'next-auth'
 import CredentialsProvider from 'next-auth/providers/credentials'
 import connectDB from '@/lib/mongodb'
 import mongoose from 'mongoose'
@@ -45,7 +45,7 @@ const handler = NextAuth({
         password: { label: 'Password', type: 'password' },
         role: { label: 'Role', type: 'text' }
       },
-      async authorize(credentials) {
+      async authorize(credentials): Promise<User | null> {
         console.log('🔐 Auth attempt:', { email: credentials?.email, role: credentials?.role });
         
         if (!credentials?.email || !credentials?.password || !credentials?.role) {
@@ -139,8 +139,8 @@ const handler = NextAuth({
             studentId: userRole === 'student' ? user.studentId : undefined,
             section: userRole === 'student' ? user.section : undefined,
             semester: userRole === 'student' ? user.semester : undefined
-          }
-        } catch (error) {
+          } as User
+        } catch (error: any) {
           console.error('❌ Auth error:', error)
           return null
         }
@@ -150,7 +150,7 @@ const handler = NextAuth({
   callbacks: {
     async jwt({ token, user }) {
       if (user) {
-        token.role = user.role
+        token.role = user.role ?? 'student'
         token.employeeId = (user as any).employeeId
         token.studentId = (user as any).studentId
         token.section = (user as any).section

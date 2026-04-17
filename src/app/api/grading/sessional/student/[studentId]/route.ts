@@ -5,18 +5,19 @@ import mongoose from 'mongoose';
 
 export async function GET(
   request: NextRequest,
-  { params }: { params: { studentId: string } }
+  context: { params: Promise<{ studentId: string }> }
 ) {
   try {
     await connectDB();
+    const { studentId } = await context.params;
 
     // Get all sessional marks for the student
     const sessionalMarks = await SessionalMarks.find({ 
-      studentId: params.studentId 
+      studentId: studentId 
     }).sort({ year: 1, semester: 1 });
 
     // Get course details for each mark
-    const db = mongoose.connection.db;
+    const db = mongoose.connection.db!;
     if (!db) {
       throw new Error('Database connection failed');
     }
@@ -35,7 +36,7 @@ export async function GET(
           }
           
           if (!course) {
-            course = await coursesCollection.findOne({ _id: mark.courseId });
+            course = await coursesCollection.findOne({ _id: mark.courseId as any });
           }
         } catch (err) {
           console.error('Error finding course:', err);
@@ -61,7 +62,7 @@ export async function GET(
       marks: marksWithCourses
     });
 
-  } catch (error) {
+  } catch (error: any) {
     console.error('Error fetching student sessional marks:', error);
     return NextResponse.json({
       success: false,

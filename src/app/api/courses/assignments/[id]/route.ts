@@ -5,12 +5,12 @@ import CourseAssignment from '@/models/CourseAssignment';
 // DELETE: Remove a course assignment
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  context: { params: Promise<{ id: string }> }
 ) {
   try {
     await connectDB();
 
-    const assignmentId = params.id;
+    const { id: assignmentId } = await context.params;
 
     // Find and delete the assignment
     const assignment = await CourseAssignment.findByIdAndUpdate(
@@ -31,7 +31,7 @@ export async function DELETE(
       message: 'Assignment removed successfully'
     });
 
-  } catch (error) {
+  } catch (error: any) {
     console.error('Error deleting course assignment:', error);
     return NextResponse.json(
       { success: false, error: 'Failed to delete course assignment' },
@@ -43,12 +43,12 @@ export async function DELETE(
 // GET: Get specific assignment details
 export async function GET(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  context: { params: Promise<{ id: string }> }
 ) {
   try {
     await connectDB();
 
-    const assignmentId = params.id;
+    const { id: assignmentId } = await context.params;
 
     const assignment = await CourseAssignment.findById(assignmentId)
       .populate('teacherId', 'name email employeeId specialization')
@@ -66,7 +66,7 @@ export async function GET(
       assignment
     });
 
-  } catch (error) {
+  } catch (error: any) {
     console.error('Error fetching course assignment:', error);
     return NextResponse.json(
       { success: false, error: 'Failed to fetch course assignment' },
@@ -78,12 +78,12 @@ export async function GET(
 // PUT: Update specific assignment
 export async function PUT(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  context: { params: Promise<{ id: string }> }
 ) {
   try {
     await connectDB();
 
-    const assignmentId = params.id;
+    const { id: assignmentId } = await context.params;
     const {
       creditHours,
       teachingRole,
@@ -146,7 +146,7 @@ export async function PUT(
       message: 'Assignment updated successfully'
     });
 
-  } catch (error) {
+  } catch (error: any) {
     console.error('Error updating course assignment:', error);
     return NextResponse.json(
       { success: false, error: 'Failed to update course assignment' },
