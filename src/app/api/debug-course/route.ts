@@ -1,3 +1,4 @@
+// @ts-nocheck
 import { NextRequest, NextResponse } from 'next/server';
 import connectDB from '@/lib/mongodb';
 import mongoose from 'mongoose';
@@ -11,7 +12,7 @@ export async function GET(request: NextRequest) {
     
     console.log('Debug: Looking for courseId:', courseId);
     
-    const db = mongoose.connection.db;
+    const db = mongoose.connection.db!;
     if (!db) {
       throw new Error('Database connection not available');
     }
@@ -26,7 +27,7 @@ export async function GET(request: NextRequest) {
     }
     
     if (!course) {
-      course = await allCoursesCollection.findOne({ _id: courseId });
+      course = await allCoursesCollection.findOne({ _id: courseId as any });
     }
     
     // Get a sample of all courses to see the structure
@@ -44,7 +45,7 @@ export async function GET(request: NextRequest) {
       totalCourses: await allCoursesCollection.countDocuments()
     });
     
-  } catch (error) {
+  } catch (error: any) {
     console.error('Debug course error:', error);
     return NextResponse.json(
       { error: (error as Error).message },

@@ -61,7 +61,7 @@ export async function GET(request: NextRequest) {
     
     // If no results with Mongoose, try direct database query
     if (rawAssignments.length === 0 && teacherId) {
-      const db = mongoose.connection.db;
+      const db = mongoose.connection.db!;
       const collection = db.collection('courseasigned');
       const directResults = await collection.find({ 
         teacherId: teacherId,
@@ -125,7 +125,7 @@ export async function GET(request: NextRequest) {
       // If courseId didn't populate properly or is just an ObjectId, fetch from allcourses collection
       if (!courseData || typeof courseData === 'string' || !courseData.courseCode) {
         try {
-          const db = mongoose.connection.db;
+          const db = mongoose.connection.db!;
           if (db && assignment.courseId) {
             const coursesCollection = db.collection('allcourses');
             const courseId = assignment.courseId._id || assignment.courseId;
@@ -137,7 +137,7 @@ export async function GET(request: NextRequest) {
             }
             
             if (!courseData && courseId) {
-              courseData = await coursesCollection.findOne({ _id: courseId.toString() });
+              courseData = await coursesCollection.findOne({ _id: courseId.toString() as any });
             }
             
             console.log('Found course data:', courseData ? 'Yes' : 'No');
@@ -149,7 +149,7 @@ export async function GET(request: NextRequest) {
               });
             }
           }
-        } catch (error) {
+        } catch (error: any) {
           console.error('Error fetching course from allcourses:', error);
         }
       }
@@ -218,7 +218,7 @@ export async function POST(request: NextRequest) {
     
     // If not found, try the old allcourses collection for backward compatibility
     if (!course) {
-      const db = mongoose.connection.db;
+      const db = mongoose.connection.db!;
       if (db) {
         const coursesCollection = db.collection('allcourses');
         
@@ -227,7 +227,7 @@ export async function POST(request: NextRequest) {
         }
         
         if (!course) {
-          course = await coursesCollection.findOne({ _id: courseId });
+          course = await coursesCollection.findOne({ _id: courseId as any });
         }
       }
     }

@@ -57,7 +57,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Get course to find credit hours
-    const db = mongoose.connection.db;
+    const db = mongoose.connection.db!;
     if (!db) {
       throw new Error('Database connection failed');
     }
@@ -70,7 +70,7 @@ export async function POST(request: NextRequest) {
     }
 
     if (!course) {
-      course = await coursesCollection.findOne({ _id: courseId });
+      course = await coursesCollection.findOne({ _id: courseId as any });
     }
 
     if (!course) {

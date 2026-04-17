@@ -48,7 +48,7 @@ export async function GET(request: NextRequest) {
       conversations
     });
 
-  } catch (error) {
+  } catch (error: any) {
     console.error('Error fetching conversations:', error);
     return NextResponse.json({
       success: false,
@@ -123,7 +123,7 @@ export async function POST(request: NextRequest) {
       conversation
     });
 
-  } catch (error) {
+  } catch (error: any) {
     console.error('Error creating conversation:', error);
     return NextResponse.json({
       success: false,

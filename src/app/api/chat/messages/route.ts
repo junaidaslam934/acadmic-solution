@@ -62,7 +62,7 @@ export async function GET(request: NextRequest) {
       }
     });
 
-  } catch (error) {
+  } catch (error: any) {
     console.error('Error fetching messages:', error);
     return NextResponse.json({
       success: false,
@@ -140,7 +140,7 @@ export async function POST(request: NextRequest) {
       message
     });
 
-  } catch (error) {
+  } catch (error: any) {
     console.error('Error sending message:', error);
     return NextResponse.json({
       success: false,

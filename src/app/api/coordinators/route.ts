@@ -11,7 +11,7 @@ export async function GET() {
       success: true,
       coordinators
     });
-  } catch (error) {
+  } catch (error: any) {
     console.error('Error fetching coordinators:', error);
     return NextResponse.json(
       { success: false, error: 'Failed to fetch coordinators' },
@@ -44,7 +44,7 @@ export async function POST(request: NextRequest) {
       success: true,
       coordinator
     });
-  } catch (error) {
+  } catch (error: any) {
     console.error('Error creating coordinator:', error);
     return NextResponse.json(
       { success: false, error: 'Failed to create coordinator' },

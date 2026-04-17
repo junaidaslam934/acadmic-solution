@@ -6,10 +6,11 @@ import Student from '@/models/Student';
 
 export async function GET(
   request: NextRequest,
-  { params }: { params: { assessmentId: string } }
+  context: { params: Promise<{ assessmentId: string }> }
 ) {
   try {
     await connectDB();
+    const { assessmentId } = await context.params;
     
     const { searchParams } = new URL(request.url);
     const teacherId = searchParams.get('teacherId');
@@ -23,7 +24,7 @@ export async function GET(
 
     // Verify teacher owns this assessment
     const assessment = await Assessment.findOne({
-      _id: params.assessmentId,
+      _id: assessmentId,
       teacherId: teacherId
     }).populate('courseId');
 
@@ -36,7 +37,7 @@ export async function GET(
 
     // Get all grades for this assessment
     const grades = await Grade.find({
-      assessmentId: params.assessmentId
+      assessmentId: assessmentId
     }).lean();
 
     // Get total students for this course/year
@@ -49,9 +50,7 @@ export async function GET(
       return NextResponse.json({
         success: true,
         statistics: {
-          assessmentId: params.assessmentId,
-          totalStudents,
-          gradedStudents: 0,
+          assessmentId: assessmentId,
           averageMarks: 0,
           averagePercentage: 0,
           highestMarks: 0,
@@ -93,9 +92,7 @@ export async function GET(
     return NextResponse.json({
       success: true,
       statistics: {
-        assessmentId: params.assessmentId,
-        totalStudents,
-        gradedStudents: grades.length,
+        assessmentId: assessmentId,
         averageMarks: Math.round(averageMarks * 100) / 100,
         averagePercentage: Math.round(averagePercentage * 100) / 100,
         highestMarks,
@@ -106,7 +103,7 @@ export async function GET(
       }
     });
 
-  } catch (error) {
+  } catch (error: any) {
     console.error('Error fetching statistics:', error);
     return NextResponse.json({
       success: false,

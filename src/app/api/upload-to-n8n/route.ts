@@ -51,7 +51,7 @@ export async function POST(request: NextRequest) {
       n8nResponse: responseData
     });
 
-  } catch (error) {
+  } catch (error: any) {
     console.error('Upload error:', error);
     return NextResponse.json(
       { 

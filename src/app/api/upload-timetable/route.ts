@@ -81,7 +81,7 @@ export async function POST(request: NextRequest) {
       throw fetchError;
     }
 
-  } catch (error) {
+  } catch (error: any) {
     console.error('Upload error:', error);
     
     return NextResponse.json({

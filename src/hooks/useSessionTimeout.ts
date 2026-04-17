@@ -7,8 +7,8 @@ import { useRouter } from 'next/navigation';
 export function useSessionTimeout() {
   const { data: session, status } = useSession();
   const router = useRouter();
-  const timeoutRef = useRef<NodeJS.Timeout>();
-  const warningRef = useRef<NodeJS.Timeout>();
+  const timeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const warningRef = useRef<NodeJS.Timeout | null>(null);
 
   useEffect(() => {
     if (status === 'authenticated' && session?.expires) {

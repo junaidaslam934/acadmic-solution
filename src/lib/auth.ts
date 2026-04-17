@@ -6,25 +6,31 @@ declare module 'next-auth' {
       id: string
       email: string
       name: string
-      role: 'teacher' | 'student' | 'admin'
+      role: 'teacher' | 'student' | 'class-advisor' | 'admin'
       employeeId?: string
       rollNumber?: string
       year?: number
       section?: string
       adminRole?: string
+      classAdvisor?: string
+      studentId?: string
+      semester?: number
     }
   }
 
   interface User {
     id: string
-    email: string
-    name: string
-    role: 'teacher' | 'student' | 'admin'
+    email?: string | null
+    name?: string | null
+    role?: 'teacher' | 'student' | 'class-advisor' | 'admin'
     employeeId?: string
     rollNumber?: string
     year?: number
     section?: string
     adminRole?: string
+    classAdvisor?: string
+    studentId?: string
+    semester?: number
   }
 }
 
@@ -36,5 +42,8 @@ declare module 'next-auth/jwt' {
     year?: number
     section?: string
     adminRole?: string
+    classAdvisor?: string
+    studentId?: string
+    semester?: number
   }
 }

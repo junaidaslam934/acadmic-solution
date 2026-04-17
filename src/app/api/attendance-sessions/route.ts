@@ -19,7 +19,7 @@ export async function GET(request: NextRequest) {
       );
     }
     
-    const db = mongoose.connection.db;
+    const db = mongoose.connection.db!;
     if (!db) {
       throw new Error('Database connection not available');
     }
@@ -44,7 +44,7 @@ export async function GET(request: NextRequest) {
       sessions: sessions
     });
     
-  } catch (error) {
+  } catch (error: any) {
     console.error('Error fetching attendance sessions:', error);
     return NextResponse.json(
       { error: (error as Error).message },

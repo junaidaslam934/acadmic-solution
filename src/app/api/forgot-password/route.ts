@@ -60,7 +60,7 @@ export async function POST(request: NextRequest) {
       throw new Error('Failed to send email');
     }
 
-  } catch (error) {
+  } catch (error: any) {
     console.error('Forgot password error:', error);
     
     return NextResponse.json({
@@ -127,7 +127,7 @@ Academic Solutions Team
     */
     
     return true; // Return true for demo purposes
-  } catch (error) {
+  } catch (error: any) {
     console.error('Email sending error:', error);
     return false;
   }

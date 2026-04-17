@@ -6,12 +6,12 @@ import Conversation from '@/models/Conversation';
 // PUT /api/chat/messages/[id]/read - Mark message as read
 export async function PUT(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  context: { params: Promise<{ id: string }> }
 ) {
   try {
     await connectDB();
     
-    const messageId = params.id;
+    const { id: messageId } = await context.params;
     const { userId, userRole } = await request.json();
     
     if (!userId || !userRole) {
@@ -31,7 +31,7 @@ export async function PUT(
 
     // Check if user already marked this message as read
     const alreadyRead = message.readBy.some(
-      read => read.userId.toString() === userId
+      (read: { userId: { toString(): string } }) => read.userId.toString() === userId
     );
 
     if (!alreadyRead) {
@@ -55,7 +55,7 @@ export async function PUT(
       message: 'Message marked as read'
     });
 
-  } catch (error) {
+  } catch (error: any) {
     console.error('Error marking message as read:', error);
     return NextResponse.json({
       success: false,

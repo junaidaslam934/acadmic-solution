@@ -197,7 +197,6 @@ export default function ChatLayout({ userId, userRole, userName }: ChatLayoutPro
             currentUserId={userId}
             currentUserRole={userRole}
             currentUserName={userName}
-            typingUsers={[]}
             isConnected={isConnected}
           />
         ) : (

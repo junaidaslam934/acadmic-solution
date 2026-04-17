@@ -16,8 +16,8 @@ export function useInactivityTimeout({
   onWarning,
   onTimeout
 }: UseInactivityTimeoutProps = {}) {
-  const timeoutRef = useRef<NodeJS.Timeout>();
-  const warningRef = useRef<NodeJS.Timeout>();
+  const timeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const warningRef = useRef<NodeJS.Timeout | null>(null);
   const lastActivityRef = useRef<number>(Date.now());
 
   const resetTimer = useCallback(() => {

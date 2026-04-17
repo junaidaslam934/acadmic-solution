@@ -91,7 +91,7 @@ export async function GET(request: NextRequest) {
       grades: studentGrades
     });
 
-  } catch (error) {
+  } catch (error: any) {
     console.error('Error fetching grades:', error);
     return NextResponse.json({
       success: false,
@@ -212,7 +212,7 @@ export async function POST(request: NextRequest) {
       message: `Processed ${results.length} grades successfully${errors.length > 0 ? `, ${errors.length} errors` : ''}`
     });
 
-  } catch (error) {
+  } catch (error: any) {
     console.error('Error submitting grades:', error);
     return NextResponse.json({
       success: false,

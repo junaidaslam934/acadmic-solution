@@ -7,7 +7,7 @@ export async function GET(request: NextRequest) {
     await connectDB();
     const students = await Student.find({});
     return NextResponse.json({ success: true, students }, { status: 200 });
-  } catch (error) {
+  } catch (error: any) {
     console.error('Error fetching students:', error);
     return NextResponse.json(
       { success: false, message: 'Error fetching students' },
@@ -78,7 +78,7 @@ export async function DELETE(request: NextRequest) {
       { success: true, message: 'Student deleted successfully' },
       { status: 200 }
     );
-  } catch (error) {
+  } catch (error: any) {
     console.error('Error deleting student:', error);
     return NextResponse.json(
       { success: false, message: 'Error deleting student' },

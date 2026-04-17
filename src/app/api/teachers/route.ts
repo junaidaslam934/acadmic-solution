@@ -14,7 +14,7 @@ export async function GET(request: NextRequest) {
     console.log(`Fetching teachers with filter:`, filter, `Found: ${teachers.length}`);
     
     return NextResponse.json({ success: true, teachers }, { status: 200 });
-  } catch (error) {
+  } catch (error: any) {
     console.error('Error fetching teachers:', error);
     return NextResponse.json(
       { success: false, message: 'Error fetching teachers' },
@@ -85,7 +85,7 @@ export async function DELETE(request: NextRequest) {
       { success: true, message: 'Teacher deleted successfully' },
       { status: 200 }
     );
-  } catch (error) {
+  } catch (error: any) {
     console.error('Error deleting teacher:', error);
     return NextResponse.json(
       { success: false, message: 'Error deleting teacher' },

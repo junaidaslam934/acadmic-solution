@@ -71,7 +71,7 @@ export default function LoginForm({ userRole }: LoginFormProps) {
         setError('An error occurred. Please try again.');
         setIsLoading(false);
       }
-    } else if (userRole === 'staff') {
+    } else if (userRole === 'teacher') {
       // Teacher/Staff login with ID only
       try {
         const response = await fetch('/api/auth/teacher/login', {
@@ -135,7 +135,7 @@ export default function LoginForm({ userRole }: LoginFormProps) {
     switch (userRole) {
       case 'student':
         return 'Enter your Student ID';
-      case 'staff':
+      case 'teacher':
         return 'Enter your Teacher ID';
       case 'class-advisor':
         return 'Enter your Class Advisor ID';
@@ -150,14 +150,14 @@ export default function LoginForm({ userRole }: LoginFormProps) {
   const getFieldLabel = () => {
     if (userRole === 'student') return 'Student ID';
     if (userRole === 'class-advisor') return 'Class Advisor ID';
-    if (userRole === 'staff') return 'Teacher ID';
+    if (userRole === 'teacher') return 'Teacher ID';
 
     if (userRole === 'admin') return 'Admin ID';
     return 'Email Address';
   };
 
   const getFieldType = () => {
-    return (userRole === 'class-advisor' || userRole === 'staff' || userRole === 'student' || userRole === 'admin') ? 'text' : 'email';
+    return (userRole === 'class-advisor' || userRole === 'teacher' || userRole === 'student' || userRole === 'admin') ? 'text' : 'email';
   };
 
   return (
@@ -192,7 +192,7 @@ export default function LoginForm({ userRole }: LoginFormProps) {
             placeholder={getRoleSpecificPlaceholder()}
             className="w-full px-4 py-2.5 border border-gray-300 rounded-lg bg-gray-50 focus:ring-2 focus:ring-red-600 focus:border-transparent transition-colors duration-200"
           />
-          {(userRole === 'class-advisor' || userRole === 'staff' || userRole === 'student') && (
+          {(userRole === 'class-advisor' || userRole === 'teacher' || userRole === 'student') && (
             <p className="mt-1.5 text-xs text-gray-500">
               {`Example: ${userRole === 'class-advisor' ? '6942e61578335fab453721ae' : userRole === 'student' ? '6941cfd8f594c8e7c63aaf6b' : '6941cfd8f594c8e7c63aaf6b'}`}
             </p>

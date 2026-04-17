@@ -11,7 +11,7 @@ export async function GET(request: NextRequest) {
     const year = searchParams.get('year');
     
     let courses = [];
-    const db = mongoose.connection.db;
+    const db = mongoose.connection.db!;
     
     if (db) {
       // Always check the raw 'allcourses' collection first (where courses are actually stored)

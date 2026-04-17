@@ -47,7 +47,7 @@ export async function GET(request: NextRequest) {
       assessments
     });
 
-  } catch (error) {
+  } catch (error: any) {
     console.error('Error fetching assessments:', error);
     return NextResponse.json({
       success: false,
@@ -122,7 +122,7 @@ export async function POST(request: NextRequest) {
       assessment
     });
 
-  } catch (error) {
+  } catch (error: any) {
     console.error('Error creating assessment:', error);
     return NextResponse.json({
       success: false,

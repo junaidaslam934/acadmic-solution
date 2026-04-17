@@ -46,7 +46,7 @@ export async function GET(request: NextRequest) {
     }
     
     // Process each assignment and fetch course data from allcourses
-    const db = mongoose.connection.db;
+    const db = mongoose.connection.db!;
     if (!db) {
       throw new Error('Database connection not available');
     }
@@ -88,7 +88,7 @@ export async function GET(request: NextRequest) {
         };
         
         formattedAssignments.push(formattedAssignment);
-      } catch (error) {
+      } catch (error: any) {
         console.error('Error processing assignment:', assignment._id, error);
         // Continue with next assignment even if this one fails
       }
@@ -97,7 +97,7 @@ export async function GET(request: NextRequest) {
     console.log('Returning formatted assignments:', formattedAssignments.length);
     return NextResponse.json({ success: true, assignments: formattedAssignments });
     
-  } catch (error) {
+  } catch (error: any) {
     console.error('Error fetching assignments:', error);
     return NextResponse.json(
       { success: false, error: (error as Error).message },

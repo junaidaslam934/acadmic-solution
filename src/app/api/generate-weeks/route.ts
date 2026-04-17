@@ -59,7 +59,7 @@ export async function POST(request: NextRequest) {
       message: `Saved ${createdWeeks.length} week(s)`,
       weeks: createdWeeks,
     });
-  } catch (error) {
+  } catch (error: any) {
     console.error('Error creating weeks:', error);
     return NextResponse.json(
       { success: false, error: 'Failed to create weeks' },
@@ -88,7 +88,7 @@ export async function GET(request: NextRequest) {
       success: true,
       weeks,
     });
-  } catch (error) {
+  } catch (error: any) {
     console.error('Error fetching weeks:', error);
     return NextResponse.json(
       { success: false, error: 'Failed to fetch weeks' },

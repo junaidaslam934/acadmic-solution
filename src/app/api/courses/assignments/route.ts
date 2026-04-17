@@ -60,7 +60,7 @@ export async function GET(request: NextRequest) {
       assignments: Object.values(courseGroups),
     });
 
-  } catch (error) {
+  } catch (error: any) {
     console.error('Error fetching course assignments:', error);
     return NextResponse.json(
       { success: false, error: 'Failed to fetch course assignments' },
@@ -163,7 +163,7 @@ export async function POST(request: NextRequest) {
       message: 'Course assignment created successfully'
     });
 
-  } catch (error) {
+  } catch (error: any) {
     console.error('Error creating course assignment:', error);
     return NextResponse.json(
       { success: false, error: 'Failed to create course assignment' },
@@ -234,7 +234,7 @@ export async function PUT(request: NextRequest) {
       message: 'Assignment updated successfully'
     });
 
-  } catch (error) {
+  } catch (error: any) {
     console.error('Error updating course assignment:', error);
     return NextResponse.json(
       { success: false, error: 'Failed to update course assignment' },
