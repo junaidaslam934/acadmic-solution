@@ -1,9 +1,11 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { useSession } from 'next-auth/react';
+import { useSession, signOut } from 'next-auth/react';
 import { useRouter } from 'next/navigation';
 import GradingLayout from '@/components/grading/GradingLayout';
+import DashboardShell from '@/components/layout/DashboardShell';
+import { NavItem } from '@/components/layout/Sidebar';
 
 interface Course {
   _id: string;
@@ -21,6 +23,13 @@ interface CourseAssignment {
   semester: number;
   assessmentCount?: number;
 }
+
+const NAV_ITEMS: NavItem[] = [
+  { id: 'courses', label: 'My Courses', icon: '📋' },
+  { id: 'grading', label: 'Grade Students', icon: '📝' },
+  { id: 'attendance', label: 'Mark Attendance', icon: '✅' },
+  { id: 'chat', label: 'Messages', icon: '💬' },
+];
 
 export default function TeacherGradingPage() {
   const { data: session, status } = useSession();
@@ -68,11 +77,21 @@ export default function TeacherGradingPage() {
     }
   };
 
+  const handleLogout = async () => {
+    await signOut({ callbackUrl: '/login' });
+  };
+
+  const handleNavSelect = (id: string) => {
+    if (id === 'courses') router.push('/teacher/dashboard');
+    if (id === 'attendance') router.push('/teacher/attendance');
+    if (id === 'chat') router.push('/teacher/chat');
+  };
+
   if (status === 'loading' || loading) {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
         <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto"></div>
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-red-600 mx-auto"></div>
           <p className="mt-4 text-gray-600">Loading your courses...</p>
         </div>
       </div>
@@ -88,7 +107,7 @@ export default function TeacherGradingPage() {
           <p className="text-gray-600 mb-4">{error}</p>
           <button
             onClick={handleRefresh}
-            className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700"
+            className="bg-red-700 text-white px-4 py-2 rounded-lg hover:bg-red-800"
           >
             Try Again
           </button>
@@ -98,24 +117,22 @@ export default function TeacherGradingPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      <div className="bg-white shadow-sm border-b">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="py-6">
-            <h1 className="text-3xl font-bold text-gray-900">Grading System</h1>
-            <p className="mt-2 text-gray-600">
-              Manage assessments and grade students for your assigned courses
-            </p>
-          </div>
-        </div>
-      </div>
-
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <GradingLayout 
+    <DashboardShell
+      navItems={NAV_ITEMS}
+      activeItem="grading"
+      onNavSelect={handleNavSelect}
+      userName={session?.user?.name || 'Teacher'}
+      userRole="Teacher"
+      onLogout={handleLogout}
+      pageTitle="Grading System"
+      pageSubtitle="CIS Academic Portal — Teacher"
+    >
+      <div className="max-w-5xl mx-auto">
+        <GradingLayout
           assignments={assignments}
           onRefresh={handleRefresh}
         />
       </div>
-    </div>
+    </DashboardShell>
   );
 }
